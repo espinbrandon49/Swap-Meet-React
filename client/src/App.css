@@ -332,7 +332,7 @@ footer {
   border: .1rem solid var(--font-color);
   border-radius: .5rem;
   text-align: center;
-  width: 145px;
+  width: 160px;
   opacity: 0;
   visibility: hidden;
   transition: all 1s .5s;
@@ -469,7 +469,7 @@ footer {
 /* product list */
 
 .product-edit {
-  margin-left: 0.10rem;
+  margin-left: 0.25rem;
 }
 
 .productList-tags {

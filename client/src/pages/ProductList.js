@@ -203,7 +203,7 @@ const ProductList = ({ singleCategory }) => {
               <div className="product-description" key={value.id + 5005}>
                 <h6 className="product-name">
                   {value.product_name}
-                  {/* {authState.username === value.username &&
+                  {authState.username === value.username &&
                     <i className="fa-solid fa-pen-to-square product-edit"
                       onClick={() => {
                         if (authState.username === value.username) {
@@ -211,11 +211,11 @@ const ProductList = ({ singleCategory }) => {
                         }
                       }}>
                     </i>
-                  }  */}
+                  }
                 </h6>
                 <h6 className="product-price">
                   Price: ${value.price}
-                  {/* {authState.username === value.username &&
+                  {authState.username === value.username &&
                     <i className="fa-solid fa-pen-to-square product-edit"
                       onClick={() => {
                         if (authState.username === value.username) {
@@ -223,11 +223,11 @@ const ProductList = ({ singleCategory }) => {
                         }
                       }}>
                     </i>
-                  } */}
+                  }
                 </h6>
                 <h6 className="product-price">
                   Stock: {value.stock}
-                  {/* {
+                  {
                     authState.username === value.username &&
                     <i className="fa-solid fa-pen-to-square product-edit"
                       onClick={() => {
@@ -236,7 +236,7 @@ const ProductList = ({ singleCategory }) => {
                         }
                       }}>
                     </i>
-                  } */}
+                  }
                 </h6>
                 <h6 className="productList-tags">
                   {tags
