@@ -1,4 +1,4 @@
-# Swap-Meet-React
+# Swap Meet React
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](code_of_conduct.md)
 
@@ -13,19 +13,23 @@ Shop by category or enter a users shop by clicking their shop name.
 ### [Website](https://jovial-belekoy-f030f6.netlify.app/)
 
 ### Tools
-* Client - React, react-bootstrap, Formik, JSX, React-Router-Dom, React hooks, CSS, Netlify, React-Toastify
-* Server - Node.js, Express, Mysql2, sequelize, dotenv, multer, Axios, Heroku
-* Authentication - JSON Web Token, bcrypt 
+* Client - React, JSX, React-Router-Dom, React hooks, CSS, Formik, react-toastify, react-bootstrap, Bootstap 5, multer(middleware) 
+* Server - Node.js, Express, Mysql2, sequelize, dotenv, Axios
+* Authentication - JSON Web Token, bcrypt
+* Deploy - Nelify and Heroku
 
 ## Table of Contents 
-  * [Usage](#usage)
   * [Demo Video](#demo)
+  * [Usage](#usage)
   * [Installation](#installation)
   * [Testing](#testing)
   * [License](#license)
   * [Contributing](#contributing)
   * [Collaboration](#collaboration)
   * [Questions](#questions)
+
+## Demo
+[![A video image that shows the Swap Meet React project with a play button](./client/src/images/swap-meet-react.png)](https://github.com/espinbrandon49/Swap-Meet-React/assets/102924713/064fdd9c-c87a-430a-822e-36906d76b27b)
   
 ## Usage 
 Swap meet e-commerce experience where users have their own shops and carts, and search categories, or user shops to fill their shopping cart
@@ -38,11 +42,8 @@ Swap meet e-commerce experience where users have their own shops and carts, and 
 - Update your shop by changing the category name, price competively, and stock number
 - Delete products and categories so that your shop is always up to date
 
-## Demo
-[![A video thumbnail shows the command-line employee management application with a play button overlaying the view.](./client/src/images/swap-meet-react.png)
-
 ## Installation
-### Application runs in the browser [here](https://jovial-belekoy-f030f6.netlify.app/) 
+### Application runs in the browser [here](https://jovial-belekoy-f030f6.netlify.app/category/13) 
 
 ### Cloning
 Install node.js and NPM on windows, clone down the GitHub repository and install the npm packages.
@@ -51,16 +52,14 @@ Install node.js and NPM on windows, clone down the GitHub repository and install
 ```bash
 https://github.com/espinbrandon49/swapandmeet
 ```
-3. Run npm install to install the npm dependencies from the [package.json](./package.json)
-
-[package.json](./server/package.json)
+3. Run npm install to install the npm dependencies from each of the package.json from the [root](./package.json), [client](./client/package.json) and [server](./server/package.json) directories
 ```bash
 npm install
 ```
-4. Change the route URLs to your local host - http://localhost:${PORT}
+4. Revert REST URLs to your local host - http://localhost:${PORT}
 
 ## Testing
-### API Testing was done using [Insomnia](https://docs.insomnia.rest/).
+### I used [Insomnia](https://docs.insomnia.rest/) to test my routes
 
 ## License 
 ### MIT License 
