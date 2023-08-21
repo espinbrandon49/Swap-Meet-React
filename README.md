@@ -1,18 +1,19 @@
-# EZ-Commerce-Duz-It
+# Swap-Meet-React
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](code_of_conduct.md)
 
 ## Description 
-A full stack e-commerce application fashinoned as an online flea market where users have their own shop and add items to their cart from other shops.  Users maintain their shop by adding categories, products with images, price, stock, and with tags.  Users can also update category names and product specs or remove them entirely.    
+A full stack e-commerce application fashinoned as an online flea market  where users have their own shop and add items to their cart from other shops.  Users expand their shop by adding categories, products with images, price, stock, and tags.  Users can also update category names and product specs or remove them entirely.    
 
 Users click a category to shop and add products to their cart.  
 
 Shop by category or enter a users shop by clicking their shop name.
 
-### [GitHub repository](git@github.com:espinbrandon49/swapandmeet.git)
+### [GitHub repository](https://github.com/espinbrandon49/Swap-Meet-React)
+### [Website](https://jovial-belekoy-f030f6.netlify.app/)
 
 ### Tools
-* Client - React, react-bootstrap, Formik, JSX, React-Router-Dom, React hooks, CSS, Netlify
+* Client - React, react-bootstrap, Formik, JSX, React-Router-Dom, React hooks, CSS, Netlify, React-Toastify
 * Server - Node.js, Express, Mysql2, sequelize, dotenv, multer, Axios, Heroku
 * Authentication - JSON Web Token, bcrypt 
 
@@ -38,10 +39,10 @@ Swap meet e-commerce experience where users have their own shops and carts, and 
 - Delete products and categories so that your shop is always up to date
 
 ## Demo
-[![A video thumbnail shows the command-line employee management application with a play button overlaying the view.](./assets/demo-video-screenshot.png)](https://user-images.githubusercontent.com/102924713/183825504-21e138a0-ba69-4317-9bcd-b6e22738b4e6.mp4)
+[![A video thumbnail shows the command-line employee management application with a play button overlaying the view.](./client/src/images/swap-meet-react.png)
 
 ## Installation
-### Application runs in the browser [here](https://main--lucky-cucurucho-74f5e7.netlify.app/) 
+### Application runs in the browser [here](https://jovial-belekoy-f030f6.netlify.app/) 
 
 ### Cloning
 Install node.js and NPM on windows, clone down the GitHub repository and install the npm packages.
@@ -51,13 +52,15 @@ Install node.js and NPM on windows, clone down the GitHub repository and install
 https://github.com/espinbrandon49/swapandmeet
 ```
 3. Run npm install to install the npm dependencies from the [package.json](./package.json)
+
+[package.json](./server/package.json)
 ```bash
 npm install
 ```
+4. Change the route URLs to your local host - http://localhost:${PORT}
 
 ## Testing
-### Insomnia can be used to open the API GET POST, PUT, and DELETE routes
-[Insomnia.rest](https://docs.insomnia.rest/)
+### API Testing was done using [Insomnia](https://docs.insomnia.rest/).
 
 ## License 
 ### MIT License 
@@ -69,8 +72,7 @@ The content of this application is licensed under the MIT License.
 [Contributor Covenant](https://www.contributor-covenant.org/)
 
 ## Collaboration
-Jerome Chenette
+To contribute, send in a pull request!
 
 ## Questions 
-
 Contact me by [E-mail](mailto:espinbrandon49@gmail.com) or [GitHub](https://github.com/espinbrandon49)
