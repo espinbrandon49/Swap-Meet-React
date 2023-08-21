@@ -3,14 +3,13 @@
 [![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-2.1-4baaaa.svg)](code_of_conduct.md)
 
 ## Description 
-A full stack e-commerce application fashinoned as an online flea market  where users have their own shop and add items to their cart from other shops.  Users expand their shop by adding categories, products with images, price, stock, and tags.  Users can also update category names and product specs or remove them entirely.    
+A full stack e-commerce application fashinoned as an online flea market where users have their own shop and add items to their cart from other shops.  Users maintain their shop by adding categories, products with images, price, stock, and with tags.  Users can also update category names and product specs or remove them entirely.    
 
 Users click a category to shop and add products to their cart.  
 
 Shop by category or enter a users shop by clicking their shop name.
 
-### [GitHub repository](https://github.com/espinbrandon49/Swap-Meet-React)
-### [Website](https://jovial-belekoy-f030f6.netlify.app/)
+### [GitHub repository](git@github.com:espinbrandon49/swapandmeet.git)
 
 ### Tools
 * Client - React, JSX, React-Router-Dom, React hooks, CSS, Formik, react-toastify, react-bootstrap, Bootstap 5, multer(middleware) 
