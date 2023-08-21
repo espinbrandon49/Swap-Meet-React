@@ -15,7 +15,7 @@ Shop by category or enter a users shop by clicking their shop name.
 * Client - React, JSX, React-Router-Dom, React hooks, CSS, Formik, react-toastify, react-bootstrap, Bootstap 5, multer(middleware) 
 * Server - Node.js, Express, Mysql2, sequelize, dotenv, Axios
 * Authentication - JSON Web Token, bcrypt
-* Deploy - Nelify and Heroku
+* Deploy - Netlify and Heroku
 
 ## Table of Contents 
   * [Demo Video](#demo)
