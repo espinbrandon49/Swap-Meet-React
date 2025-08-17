@@ -1,89 +1,40 @@
-const bcrypt = require('bcrypt');
-const sequelize = require('../config/connection');
+// seeds/index.js
+const sequelize = require('../config/connection.js');
 const { Users, Category, Product, Tag, ProductTag, Cart, ProductCart } = require('../models');
 
 const seedAll = async () => {
   await sequelize.sync({ force: true });
-  console.log('\n----- DATABASE SYNCED -----\n');
 
   // USERS
-  const hashedPassword = await bcrypt.hash("Demo123!", 10);
   const demoUser = await Users.create({
     username: "demo",
-    password: hashedPassword,
-    image: null,
+    password: "Demo123!",
   });
-  console.log('✅ Users seeded');
 
-  // CATEGORIES
+  // CATEGORIES (owned by demo user)
   const categories = await Category.bulkCreate([
-    { category_name: 'Shirts', username: demoUser.username },
-    { category_name: 'Shorts', username: demoUser.username },
-    { category_name: 'Music', username: demoUser.username },
-    { category_name: 'Hats', username: demoUser.username },
-    { category_name: 'Shoes', username: demoUser.username },
+    { category_name: 'Shirts', user_id: demoUser.id },
+    { category_name: 'Shorts', user_id: demoUser.id },
+    { category_name: 'Music', user_id: demoUser.id },
+    { category_name: 'Hats', user_id: demoUser.id },
+    { category_name: 'Shoes', user_id: demoUser.id },
   ], { returning: true });
-  console.log('✅ Categories seeded');
 
-  // PRODUCTS
+  // PRODUCTS (no user_id; ownership flows via category -> user)
   const products = await Product.bulkCreate([
-    {
-      product_name: 'Plain T-Shirt',
-      username: demoUser.username,
-      price: 14.99,
-      stock: 14,
-      category_id: categories[0].id,
-    },
-    {
-      product_name: 'Colorful T-Shirt',
-      username: demoUser.username,
-      price: 18.99,
-      stock: 2,
-      category_id: categories[0].id,
-    },
-    {
-      product_name: 'Running Sneakers',
-      username: demoUser.username,
-      price: 90.0,
-      stock: 25,
-      category_id: categories[4].id,
-    },
-    {
-      product_name: 'Branded Baseball Hat',
-      username: demoUser.username,
-      price: 22.99,
-      stock: 12,
-      category_id: categories[3].id,
-    },
-    {
-      product_name: 'Top 40 Vinyl Record',
-      username: demoUser.username,
-      price: 12.99,
-      stock: 50,
-      category_id: categories[2].id,
-    },
-    {
-      product_name: 'Cargo Shorts',
-      username: demoUser.username,
-      price: 29.99,
-      stock: 22,
-      category_id: categories[1].id,
-    },
+    { product_name: 'Plain T-Shirt', price: 14.99, stock: 14, category_id: categories[0].id, image_url: "https://picsum.photos/300" },
+    { product_name: 'Colorful T-Shirt', price: 18.99, stock: 2, category_id: categories[0].id, image_url: "https://picsum.photos/400/300" },
+    { product_name: 'Running Sneakers', price: 90.00, stock: 25, category_id: categories[4].id, image_url: "https://picsum.photos/300" },
+    { product_name: 'Branded Baseball Hat', price: 22.99, stock: 12, category_id: categories[3].id, image_url: "https://picsum.photos/400/300" },
+    { product_name: 'Top 40 Vinyl Record', price: 12.99, stock: 50, category_id: categories[2].id, image_url: "https://picsum.photos/300" },
+    { product_name: 'Cargo Shorts', price: 29.99, stock: 22, category_id: categories[1].id, image_url: "https://picsum.photos/400/300" },
   ], { returning: true });
-  console.log('✅ Products seeded');
 
   // TAGS
-  const tags = await Tag.bulkCreate([
-    { tag_name: 'rock music' },
-    { tag_name: 'pop music' },
-    { tag_name: 'blue' },
-    { tag_name: 'red' },
-    { tag_name: 'green' },
-    { tag_name: 'white' },
-    { tag_name: 'gold' },
-    { tag_name: 'pop culture' },
-  ], { returning: true });
-  console.log('✅ Tags seeded');
+  const tags = await Tag.bulkCreate(
+    ['rock music', 'pop music', 'blue', 'red', 'green', 'white', 'gold', 'pop culture'].map(tag_name => ({ tag_name })),
+    { returning: true }
+  );
 
   // PRODUCT TAGS
   await ProductTag.bulkCreate([
@@ -96,19 +47,13 @@ const seedAll = async () => {
     { product_id: products[3].id, tag_id: tags[7].id },
     { product_id: products[4].id, tag_id: tags[0].id },
   ]);
-  console.log('✅ ProductTags seeded');
 
-  // CART
-  // CART for demo user
+  // CART for demo user + line items
   const demoCart = await Cart.create({ user_id: demoUser.id });
-  console.log("✅ Cart created for demo user");
-
-  // PRODUCT–CART links
   await ProductCart.bulkCreate([
-    { product_id: products[0].id, cart_id: demoCart.id, },
-    { product_id: products[2].id, cart_id: demoCart.id, },
+    { product_id: products[0].id, cart_id: demoCart.id, quantity: 1 },
+    { product_id: products[2].id, cart_id: demoCart.id, quantity: 1 },
   ]);
-  console.log("✅ Cart items seeded");
 
   process.exit(0);
 };

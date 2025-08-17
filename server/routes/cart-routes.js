@@ -2,6 +2,7 @@ const router = require('express').Router();
 const { Cart, Product, User, ProductCart } = require('../models');
 const { validateToken } = require('../middleWares/AuthMiddlewares')
 
+// POST / api / cart / createcart → create cart
 router.post('/createCart', validateToken, async (req, res) => {
   try {
     console.log('good')
@@ -15,6 +16,7 @@ router.post('/createCart', validateToken, async (req, res) => {
   }
 });
 
+// GET / api / cart / cart_id → find cart
 router.get('/:id', async (req, res) => {
   try {
     const cartData = await Cart.findByPk(req.params.id, {
@@ -22,7 +24,7 @@ router.get('/:id', async (req, res) => {
     });
 
     if (!cartData) {
-      res.status(404).json({ message: 'No tag found with this id!' })
+      res.status(404).json({ message: 'No cart found with this id!' })
       return;
     }
     res.status(200).json(cartData)

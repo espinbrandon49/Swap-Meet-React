@@ -14,11 +14,9 @@ Cart.init(
     },
     user_id: {
       type: DataTypes.INTEGER,
-      // allowNull: false,
-      references: {
-        model: 'users',
-        key: 'id',
-      },
+      allowNull: false,
+      unique: true,
+      references: { model: 'users', key: 'id' }
     }
   },
   {

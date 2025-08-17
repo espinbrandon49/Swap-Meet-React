@@ -13,12 +13,13 @@ Category.init(
       autoIncrement: true,
     },
     category_name: {
-      type: DataTypes.STRING,
+      type: DataTypes.STRING(100),
       allowNull: false,
     },
-    username: {
-      type: DataTypes.STRING,
+    user_id: {
+      type: DataTypes.INTEGER,
       allowNull: false,
+      references: { model: 'users', key: 'id' }
     },
   },
   {
@@ -27,6 +28,7 @@ Category.init(
     freezeTableName: true,
     underscored: true,
     modelName: 'category',
+    indexes: [{ unique: true, fields: ['user_id', 'category_name'] }]
   }
 );
 

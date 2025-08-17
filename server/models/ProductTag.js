@@ -1,6 +1,6 @@
 const { Model, DataTypes } = require('sequelize');
 
-const sequelize = require('../config/connection');
+const sequelize = require('../config/connection.js');
 
 class ProductTag extends Model {}
 
@@ -18,6 +18,9 @@ ProductTag.init(
         model: 'product',
         key: 'id',
       },
+      allowNull: false,
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
     },
     tag_id: {
       type: DataTypes.INTEGER,
@@ -25,6 +28,9 @@ ProductTag.init(
         model: 'tag',
         key: 'id',
       },
+      allowNull: false,
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
     },
   },
   {
@@ -33,6 +39,7 @@ ProductTag.init(
     freezeTableName: true,
     underscored: true,
     modelName: 'product_tag',
+    indexes: [{ unique: true, fields: ['product_id', 'tag_id'] }],
   }
 );
 

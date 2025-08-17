@@ -1,8 +1,8 @@
 const { Model, DataTypes } = require('sequelize');
 
-const sequelize = require('../config/connection');
+const sequelize = require('../config/connection.js');
 
-class ProductCart extends Model {}
+class ProductCart extends Model { }
 
 ProductCart.init(
   {
@@ -18,6 +18,9 @@ ProductCart.init(
         model: 'product',
         key: 'id',
       },
+      allowNull: false,
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
     },
     cart_id: {
       type: DataTypes.INTEGER,
@@ -25,6 +28,15 @@ ProductCart.init(
         model: 'cart',
         key: 'id',
       },
+      allowNull: false,
+      onDelete: 'CASCADE',
+      onUpdate: 'CASCADE',
+    },
+    quantity: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 1,
+      validate: { min: 1, isInt: true },
     },
   },
   {
@@ -33,6 +45,7 @@ ProductCart.init(
     freezeTableName: true,
     underscored: true,
     modelName: 'product_cart',
+    indexes: [{ unique: true, fields: ['product_id', 'cart_id'] }],
   }
 );
 
