@@ -1,14 +1,9 @@
 const router = require('express').Router();
-const { Product, Category, Tag, ProductTag } = require('../../models');
+const {Product, Category, Tag, ProductTag, ProductCart} = require("../models")
 const multer = require('multer');
 const path = require('path');
-const { validateToken } = require('../../middleWares/AuthMiddlewares');
-const ProductCart = require('../../models/ProductCart')
+const { validateToken } = require('../middleWares/AuthMiddlewares');
 
-// The `/api/products` endpoint
-// get all products
-// find all products
-// be sure to include its associated Category and Tag data
 router.get('/', async (req, res) => {
   try {
     const productData = await Product.findAll({

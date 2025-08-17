@@ -1,6 +1,6 @@
 const router = require('express').Router();
-const { Cart, Product, User, ProductCart } = require('../../models');
-const { validateToken } = require('../../middleWares/AuthMiddlewares')
+const { Cart, Product, User, ProductCart } = require('../models');
+const { validateToken } = require('../middleWares/AuthMiddlewares')
 
 router.post('/createCart', validateToken, async (req, res) => {
   try {

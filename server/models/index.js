@@ -66,5 +66,8 @@ module.exports = {
   Tag,
   ProductTag,
   Users,
-  Cart
+  Cart,
+  ProductCart
 };
+
+

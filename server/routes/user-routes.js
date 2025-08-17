@@ -1,10 +1,10 @@
 const router = require('express').Router();
-const { Users, Product, Category } = require("../../models");
+const { Users, Product, Category } = require("../models");
 const bcrypt = require('bcrypt');
-const { validateToken } = require("../../middleWares/AuthMiddlewares")
+const { validateToken } = require("../middleWares/AuthMiddlewares")
 const { sign } = require('jsonwebtoken')
 
-//create user
+// POST / api / users → create user
 router.post('/', async (req, res) => {
   const { username, password } = req.body;
   bcrypt.hash(password, 10).then((hash) => {
@@ -17,7 +17,7 @@ router.post('/', async (req, res) => {
   });
 });
 
-//user login
+// POST / api / users / login → login
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
 
@@ -36,10 +36,12 @@ router.post('/login', async (req, res) => {
   });
 })
 
+// GET / api / users / auth → validate token
 router.get('/auth', validateToken, (req, res) => {
   res.json(req.user)
 });
 
+// GET / api / users / basicinfo /: id → user info
 router.get('/basicinfo/:id', async (req, res) => {
   const id = req.params.id;
 
@@ -49,7 +51,7 @@ router.get('/basicinfo/:id', async (req, res) => {
   res.json(basicInfo)
 })
 
-// update a username(shopname) by its `id` value
+// PUT / api / users / changeusername → update username (shop name)
 router.put("/changeusername", validateToken, async (req, res) => {
   const { newUsername, uid, pid, cid } = req.body;
   try {

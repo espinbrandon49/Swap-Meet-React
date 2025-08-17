@@ -1,13 +1,16 @@
 {
-  "scripts": {
-    "start": "node server/server.js",
-    "develop": "concurrently \"cd server && npm run start\" \"cd client && npm start\"",
-    "install": "cd server && npm i && cd ../client && npm i",
-    "seed": "cd server && npm run seed",
-    "build": "cd client && npm run build",
-    "heroku-postbuild": "cd client && npm install --only=dev && npm install && npm run build"
-  },
-  "dependencies": {
+  "name": "swap-meet-react",
+  "private": true,
+  "workspaces": ["server", "client"],
+  "devDependencies": {
     "concurrently": "^7.4.0"
+  },
+  "scripts": {
+    "install:all": "npm install --workspaces",
+    "dev": "concurrently -n SERVER,CLIENT -c auto \"npm run dev --workspace server\" \"npm start --workspace client\"",
+    "start:server": "npm start --workspace server",
+    "start:client": "npm start --workspace client",
+    "seed": "npm run seed --workspace server",
+    "build:client": "npm run build --workspace client"
   }
 }
