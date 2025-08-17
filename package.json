@@ -1,7 +1,10 @@
 {
   "name": "swap-meet-react",
   "private": true,
-  "workspaces": ["server", "client"],
+  "workspaces": [
+    "server",
+    "client"
+  ],
   "devDependencies": {
     "concurrently": "^7.4.0"
   },

@@ -1,98 +1,100 @@
 const router = require('express').Router();
-const { Category, Product, Tag } = require('../models');
-const { validateToken } = require('../middleWares/AuthMiddlewares')
+const { Op } = require('sequelize');
+const { Category, Product } = require('../models');
+const { validateToken } = require('../middleWares/AuthMiddlewares');
 
-// GET / api / categories → get all categories
-router.get('/', async (req, res) => {
+// GET /api/categories - List current user's categories (with products)
+router.get('/', validateToken, async (req, res) => {
   try {
-    const categoryData = await Category.findAll({
+    const qRaw = req.query.q || '';
+    const q = qRaw.trim();
+    let { limit = 100, offset = 0 } = req.query;
+    const limitNum = Math.max(0, Math.min(parseInt(limit, 10) || 100, 200));
+    const offsetNum = Math.max(0, parseInt(offset, 10) || 0);
+
+    const where = { user_id: req.user.id };
+    if (q) where.category_name = { [Op.like]: `%${q}%` };
+
+    const categories = await Category.findAll({
+      where,
+      include: [{ model: Product }],
+      order: [['category_name', 'ASC']],
+      limit: limitNum,
+      offset: offsetNum,
+    });
+    res.json(categories);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /api/categories/:id - Fetch one category (owner-scoped, with products)
+router.get('/:id', validateToken, async (req, res) => {
+  try {
+    const category = await Category.findOne({
+      where: { id: req.params.id, user_id: req.user.id },
       include: [{ model: Product }],
     });
-    const categories = categoryData.map((category) => category.get({ plain: true }))
-    res.status(200).json(categoryData)
+    if (!category) return res.status(404).json({ message: 'Not found' });
+    res.json(category);
   } catch (err) {
-    res.status(500).json(err)
+    res.status(500).json({ error: err.message });
   }
 });
 
-// GET / api / categories / :category_id → get one category
-router.get('/:id', async (req, res) => {
-  try {
-    const categoryData = await Category.findByPk(req.params.id, {
-      include: [{ model: Product }]
-    });
-
-    if (!categoryData) {
-      res.status(404).json({ message: 'No category found with this id!' });
-      return;
-    }
-    res.status(200).json(categoryData)
-  } catch (err) {
-    res.status(500).json(err);
-  }
-});
-
-// GET / api / categories / :user_id  → get all categories by user
-router.get('/byuserId/:id', async (req, res) => {
-  const id = req.params.id;
-  const listOfCategories = await Category.findAll({ where: { userId: id } });
-  res.json(listOfCategories)
-})
-
-// POST / api / categories / → create a category
+// POST /api/categories - Create category for current user
 router.post('/', validateToken, async (req, res) => {
   try {
-    const category = req.body;
-    category.userId = req.user.id
-    await Category.create(category)
+    const name = (req.body.category_name || '').trim();
+    if (!name) return res.status(400).json({ error: 'category_name is required' });
 
-    const tagName = {
-      tag_name: req.body.category_name,
-    }
-    await Tag.create(tagName)
-    res.status(200).json(category)
+    const created = await Category.create({ category_name: name, user_id: req.user.id });
+    res.status(201).json(created);
   } catch (err) {
-    res.status(400).json(err)
+    if (err.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ error: 'Category name already exists for this user' });
+    }
+    if (err.name === 'SequelizeValidationError') {
+      return res.status(400).json({ error: err.errors?.[0]?.message || 'Validation failed' });
+    }
+    res.status(500).json({ error: err.message });
   }
 });
 
-// CHANGE TO BY ID
-// PUT / api / categories / categoryname → update a category
-router.put('/categoryName', validateToken, async (req, res) => {
+// PUT /api/categories/:id - Rename category (owner-scoped, unique name)
+router.put('/:id', validateToken, async (req, res) => {
   try {
-    const { newCategoryName, id, pid } = req.body;
-    await Category.update(
-      { category_name: newCategoryName },
-      { where: { id: id } }
+    const name = (req.body.category_name || '').trim();
+    if (!name) return res.status(400).json({ error: 'category_name is required' });
+
+    const [count] = await Category.update(
+      { category_name: name },
+      { where: { id: req.params.id, user_id: req.user.id } }
     );
-    await Product.update(
-      { categoryName: newCategoryName },
-      { where: { id: pid } }
-    )
-    res.status(200).json(newCategoryName)
+
+    if (!count) return res.status(404).json({ message: 'Not found' });
+    res.json({ id: req.params.id, category_name: name });
   } catch (err) {
-    res.status(400).json(err)
+    if (err.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ error: 'Category name already exists for this user' });
+    }
+    if (err.name === 'SequelizeValidationError') {
+      return res.status(400).json({ error: err.errors?.[0]?.message || 'Validation failed' });
+    }
+    res.status(500).json({ error: err.message });
   }
 });
 
-// delete a category by its `id` value
-// DELETE / api / categories / :category_id → DELETE a category
-router.delete('/:id', async (req, res) => {
+// DELETE /api/categories/:id - Delete category (owner-scoped; products cascade via FK)
+router.delete('/:id', validateToken, async (req, res) => {
   try {
-    const categoryData = await Category.destroy({
-      where: {
-        id: req.params.id
-      }
+    const count = await Category.destroy({
+      where: { id: req.params.id, user_id: req.user.id },
     });
-
-    if (!categoryData) {
-      res.status(404).json({ message: 'The is no category with this id!' });
-      return;
-    }
-
-    res.status(200).json(categoryData);
+    if (!count) return res.status(404).json({ message: 'Not found' });
+    res.status(204).end();
   } catch (err) {
-    res.status(500).json(err);
+    res.status(500).json({ error: err.message });
   }
 });
 

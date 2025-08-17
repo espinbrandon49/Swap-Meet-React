@@ -1,233 +1,170 @@
+
 const router = require('express').Router();
-const {Product, Category, Tag, ProductTag, ProductCart} = require("../models")
-const multer = require('multer');
-const path = require('path');
+const { Op } = require('sequelize');
+const sequelize = require('../config/connection');
+const { Product, Category, Tag, ProductTag } = require('../models');
 const { validateToken } = require('../middleWares/AuthMiddlewares');
 
-// GET / api / products → get all products
-router.get('/', async (req, res) => {
-  try {
-    const productData = await Product.findAll({
-      include: [{ model: Category }, { model: Tag }],
-    });
-    const products = productData.map((product) => product.get({
-      plain: true
-    }))
-    res.status(200).json(productData)
-  } catch (err) {
-    res.status(500).json(err)
-  }
-});
-
-// GET / api / products / :category_id → get all products in a category
-router.get('/:category_id', async (req, res) => {
-  try {
-    const category_id = req.params.category_id
-    const products = await Product.findAll({ where: { category_id: category_id } });
-
-    if (!products) {
-      res.status(404).json({ message: 'No product found with this id!' })
-      return;
-    }
-
-    res.status(200).json(products)
-  } catch (err) {
-    res.status(500).json(err)
-  }
-});
-
-
-// GET / api / products / productbyuserId / :user_id → get all products by a user
-router.get('/productbyuserId/:id', async (req, res) => {
-  const id = req.params.id;
-  const listOfProducts = await Product.findAll({ where: { userId: id } });
-  res.json(listOfProducts)
-})
-
-// POST / api / products / → create a product
-router.post('/', validateToken, (req, res) => {
-  //req.body should look like this...
-  // let newProduct = {
-  //   image: req.body.image,
-  //   product_name: req.body.product_name,
-  //   username: req.body.username,
-  //   price: req.body.price,
-  //   stock: req.body.stock,
-  //   categoryName: req.body.categoryName,
-  //   category_id: req.body.category_id,
-  //   userId: req.body.userId,
-  //   tagIds: req.body.tagIds
-  // }
-
-  Product.create(req.body)
-    .then((product) => {
-      if (req.body.tagIds.length) {
-        const productTagIdArr = req.body.tagIds.map((tag_id) => {
-          return {
-            product_id: product.id,
-            tag_id,
-          };
-        });
-        return ProductTag.bulkCreate(productTagIdArr);
-      }
-      res.status(200).json(product);
-    })
-    .then((productTagIds) => res.status(200).json(productTagIds))
-    .catch((err) => {
-      console.log(err);
-      res.status(400).json(err);
-    });
-});
-
-// DELETE / api / products / → delete a product
-router.delete('/:id', async (req, res) => {
-  try {
-    const productData = await Product.destroy({
-      where: {
-        id: req.params.id
-      }
-    });
-
-    if (!productData) {
-      res.status(404).json({ message: 'No product found with this id' });
-      return
-    }
-
-    res.status(200).json(productData);
-  } catch (err) {
-    res.status(500).json(err);
-  }
-});
-
-// CHANGE TO UPDATE PRODUCT NAME, STOCK, OR PRICE - use product_id
-// PUT / api / products / productname → update a product
-router.put('/productName', validateToken, async (req, res) => {
-  try {
-    const { newProductName, id } = req.body;
-    await Product.update(
-      { product_name: newProductName },
-      { where: { id: id } }
-    );
-    res.status(200).json(newProductName)
-  } catch (err) {
-    res.status(400).json(err)
-  }
-})
-
-// CHANGE TO UPDATE PRODUCT NAME, STOCK, OR PRICE - use product_id
-// PUT / api / products / stock → update a product stock
-router.put('/stock', validateToken, async (req, res) => {
-  try {
-    const { newStock, id } = req.body;
-    await Product.update(
-      { stock: newStock },
-      { where: { id: id } }
-    );
-    res.status(200).json(newStock)
-  } catch (err) {
-    res.status(400).json(err)
-  }
-})
-
-// CHANGE TO UPDATE PRODUCT NAME, STOCK, OR PRICE - use product_id
-// PUT / api / products / productPrice → update a product price
-router.put('/productPrice', validateToken, async (req, res) => {
-  try {
-    const { newProductPrice, id } = req.body;
-    await Product.update(
-      { price: newProductPrice },
-      { where: { id: id } }
-    );
-    res.status(200).json(newProductPrice)
-  } catch (err) {
-    res.status(400).json(err)
-  }
-})
-
-// POST / api / products / addtocart → add a product to a cart
-router.post('/addtocart', validateToken, (req, res) => {
-  Product.findByPk(req.body.pid)
-    .then((product) => {
-      const product_id = product.id
-      const cart_id = req.user.id
-      ProductCart.create({ product_id: product_id, cart_id: cart_id })
-
-      res.status(200).json(product);
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(400).json(err);
-    });
-});
-
-// POST / api / products / removefromcart → remove a product from a cart
-router.post('/removefromcart', (req, res) => {
-  Product.findByPk(req.body.pid)
-    .then((product) => {
-      ProductCart.destroy({ where: { id: req.body.cid } })
-      res.status(200).json(product);
-    })
-    .catch((err) => {
-      console.log(err);
-      res.status(400).json(err);
-    });
-});
-
-
-// SWITCH TO USING URLS - user has their own cloudbased storage for their photos
-// POST / api / products / upload → upload an imagge
-router.post('/upload', (req, res) => {
-  upload(req, res, (err) => {
-    if (err) {
-      return res.send({
-        msg: err
-      });
-    } else {
-      console.log(req.file)
-
-      if (req.file === undefined) {
-        res.send({
-          msg: 'Error: No File Selected'
-        });
-      } else {
-        return res.send(`https://swapmeetreact-4f408e945efe.herokuapp.com/public/${req.file.filename}`)
-      }
-    }
+// Helper: confirm a product belongs to the current user via its Category
+async function loadOwnedProduct(id, userId) {
+  const prod = await Product.findByPk(id, {
+    include: [{ model: Category, attributes: ['id', 'user_id'] }],
   });
+  return prod && prod.Category && prod.Category.user_id === userId ? prod : null;
+}
+
+// GET /api/products - Owner-scoped list with optional filters
+router.get('/', validateToken, async (req, res) => {
+  try {
+    let { limit = 50, offset = 0, categoryId, tagId } = req.query;
+
+    const limitNum = Math.max(0, Math.min(parseInt(limit, 10) || 50, 100));
+    const offsetNum = Math.max(0, parseInt(offset, 10) || 0);
+
+    const where = {};
+    if (categoryId !== undefined) {
+      const cid = parseInt(categoryId, 10);
+      if (Number.isInteger(cid)) where.category_id = cid;
+    }
+
+    const include = [{ model: Category, where: { user_id: req.user.id } }];
+    if (tagId !== undefined) {
+      const tid = parseInt(tagId, 10);
+      if (Number.isInteger(tid)) {
+        include.push({ model: Tag, where: { id: tid } });
+      } else {
+        include.push({ model: Tag });
+      }
+    } else {
+      include.push({ model: Tag });
+    }
+
+    const rows = await Product.findAll({
+      where,
+      include,
+      limit: limitNum,
+      offset: offsetNum,
+      distinct: true,
+      subQuery: false,
+    });
+
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// SWITCH TO USING URLS - user has their own cloudbased storage for their photos
-// UPLOAD IMAGE // UPLOAD IMAGE // UPLOAD IMAGE // UPLOAD IMAGE
-const storage = multer.diskStorage({
-  destination: './public',
-  filename: function (req, file, cb) {
-    cb(null, file.fieldname + "-" + file.originalname.replace(/\s/g, '').toLowerCase());
-  }
-})
+// GET /api/products/by-category/:category_id
+// Verify the category belongs to the user, then list products under it
+router.get('/by-category/:category_id', validateToken, async (req, res) => {
+  try {
+    const category = await Category.findOne({
+      where: { id: req.params.category_id, user_id: req.user.id },
+    });
+    if (!category) return res.status(404).json({ message: 'Category not found' });
 
-const upload = multer({
-  storage: storage,
-  limits: { fileSize: 10000000000 },
-  fileFilter: function (req, file, cb) {
-    checkFileType(file, cb)
+    const products = await Product.findAll({
+      where: { category_id: category.id },
+      include: [{ model: Tag }],
+    });
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
-}).single('image')
+});
 
-// SWITCH TO USING URLS - user has their own cloudbased storage for their photos
-//Check file type
-function checkFileType(file, cb) {
-  //Allowed ext
-  const filetypes = /jpeg|jpg|png|gif/;
-  //Check ext
-  const extname = filetypes.test(path.extname(file.originalname).toLowerCase())
-  //Check mime
-  const mimetype = filetypes.test(file.mimetype);
+// POST /api/products
+// Guard by category ownership; optional tagIds[]
+router.post('/', validateToken, async (req, res) => {
+  try {
+    // Pull + normalize inputs
+    let { product_name, price, stock, image_url, category_id, tagIds = [] } = req.body;
+    product_name = (product_name || '').trim();
+    image_url = (image_url || '').trim();
+    category_id = Number(category_id);
 
-  if (mimetype && extname) {
-    return cb(null, true)
-  } else {
-    cb("Error: Images Only!")
+    if (!product_name) return res.status(400).json({ error: 'product_name is required' });
+    if (!Number.isInteger(category_id)) return res.status(400).json({ error: 'category_id must be an integer' });
+
+    // Ownership guard: category must belong to the caller
+    const cat = await Category.findOne({ where: { id: category_id, user_id: req.user.id } });
+    if (!cat) return res.status(403).json({ error: 'Forbidden' });
+
+    // Normalize tagIds
+    tagIds = Array.isArray(tagIds)
+      ? [...new Set(tagIds.map(Number).filter(Number.isInteger))]
+      : [];
+
+    // Pre-validate tag existence
+    if (tagIds.length) {
+      const count = await Tag.count({ where: { id: { [Op.in]: tagIds } } });
+      if (count !== tagIds.length) {
+        return res.status(422).json({ error: 'One or more tagIds do not exist' });
+      }
+    }
+
+    // Transaction for atomicity (product + tag attaches)
+    const t = await sequelize.transaction();
+    try {
+      const product = await Product.create(
+        { product_name, price, stock, image_url, category_id },
+        { transaction: t }
+      );
+
+      if (tagIds.length) {
+        const rows = tagIds.map(tag_id => ({ product_id: product.id, tag_id }));
+        await ProductTag.bulkCreate(rows, { transaction: t });
+      }
+
+      await t.commit();
+      return res.status(201).json(product);
+    } catch (err) {
+      await t.rollback();
+      const status = /unique/i.test(err.message) ? 409 : 400;
+      return res.status(status).json({ error: err.message });
+    }
+  } catch (err) {
+    return res.status(500).json({ error: err.message });
   }
-}
+});
+
+// PATCH /api/products/:id
+router.patch('/:id', validateToken, async (req, res) => {
+  try {
+    const prod = await loadOwnedProduct(req.params.id, req.user.id);
+    if (!prod) return res.status(404).json({ message: 'Not found' });
+
+    const data = {};
+    if (Object.prototype.hasOwnProperty.call(req.body, 'product_name')) {
+      const v = req.body.product_name;
+      if (typeof v === 'string') data.product_name = v.trim();
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'image_url')) {
+      const v = req.body.image_url;
+      if (typeof v === 'string') data.image_url = v.trim();
+    }
+    if (Object.prototype.hasOwnProperty.call(req.body, 'price')) data.price = req.body.price;
+    if (Object.prototype.hasOwnProperty.call(req.body, 'stock')) data.stock = req.body.stock;
+
+    await prod.update(data);
+    res.json({ id: prod.id });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
+// DELETE /api/products/:id
+// Owner-guarded delete
+router.delete('/:id', validateToken, async (req, res) => {
+  try {
+    const prod = await loadOwnedProduct(req.params.id, req.user.id);
+    if (!prod) return res.status(404).json({ message: 'Not found' });
+
+    await Product.destroy({ where: { id: prod.id } });
+    res.status(204).end();
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 module.exports = router;

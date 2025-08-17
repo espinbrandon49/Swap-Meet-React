@@ -10,9 +10,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 
-// static file serving
-app.use("/public", express.static('./public'));
-
 // Mount routes at /api
 const routes = require('./routes');
 app.use('/api', routes);

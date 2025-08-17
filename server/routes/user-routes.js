@@ -1,74 +1,78 @@
+// routes/user-routes.js
 const router = require('express').Router();
-const { Users, Product, Category } = require("../models");
-const bcrypt = require('bcrypt');
-const { validateToken } = require("../middleWares/AuthMiddlewares")
-const { sign } = require('jsonwebtoken')
+const { Users } = require('../models');
+const { validateToken } = require('../middleWares/AuthMiddlewares');
+const { sign } = require('jsonwebtoken');
 
-// POST / api / users → create user
+// POST /api/users
 router.post('/', async (req, res) => {
-  const { username, password } = req.body;
-  bcrypt.hash(password, 10).then((hash) => {
-    Users.create({
-      username: username,
-      password: hash,
-      image: req.body.image
-    })
-    res.json('SUCCESS')
-  });
-});
-
-// POST / api / users / login → login
-router.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-
-  const user = await Users.findOne({ where: { username: username } });
-
-  if (!user) return res.json({ error: "User doesn't exist" });
-
-  bcrypt.compare(password, user.password).then((match) => {
-    if (!match) return res.json({ error: 'Wrong username and password combination' })
-
-    const accessToken = sign(
-      { username: user.username, id: user.id },
-      "importantsecret"
-    );
-    res.json({ token: accessToken, username: username, id: user.id });
-  });
-})
-
-// GET / api / users / auth → validate token
-router.get('/auth', validateToken, (req, res) => {
-  res.json(req.user)
-});
-
-// GET / api / users / basicinfo /: id → user info
-router.get('/basicinfo/:id', async (req, res) => {
-  const id = req.params.id;
-
-  const basicInfo = await Users.findByPk(id, {
-    attributes: { exclude: ['password'] },
-  })
-  res.json(basicInfo)
-})
-
-// PUT / api / users / changeusername → update username (shop name)
-router.put("/changeusername", validateToken, async (req, res) => {
-  const { newUsername, uid, pid, cid } = req.body;
   try {
-    await Users.update(
-      { username: newUsername },
-      { where: { id: uid } }
-    );
-    await Product.update(
-      { username: newUsername },
-      { where: { id: pid } }
-    );
-    await Category.update(
-      { username: newUsername },
-      { where: { id: cid } }
-    );
+    const username = (req.body.username || '').trim();
+    const password = req.body.password;
+
+    if (!username) return res.status(400).json({ error: 'username is required' });
+    if (!password) return res.status(400).json({ error: 'password is required' });
+
+    const user = await Users.create({ username, password });
+    res.status(201).json({ id: user.id, username: user.username });
   } catch (err) {
-    res.status(400).json(err)
+    if (err.name === 'SequelizeUniqueConstraintError') {
+      return res.status(409).json({ error: 'username already exists' });
+    }
+    if (err.name === 'SequelizeValidationError') {
+      return res.status(400).json({ error: err.errors?.[0]?.message || 'Validation failed' });
+    }
+    return res.status(500).json({ error: 'Internal server error', details: err.message });
+  }
+});
+
+// POST /api/users/login
+router.post('/login', async (req, res) => {
+  try {
+    const username = (req.body.username || '').trim();
+    const password = req.body.password;
+
+    if (!username || !password) {
+      return res.status(400).json({ error: 'username and password are required' });
+    }
+
+    const user = await Users.findOne({ where: { username } });
+    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+
+    const ok = await user.checkPassword(password);
+    if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
+
+    if (!process.env.JWT_SECRET) {
+      return res.status(500).json({ error: 'Server misconfigured: JWT secret missing' });
+    }
+
+    const token = sign(
+      { username: user.username, id: user.id },
+      process.env.JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.json({ token, username: user.username, id: user.id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+//  GET /api/users/auth
+router.get('/auth', validateToken, (req, res) => {
+  res.json(req.user);
+});
+
+// GET /api/users/basicinfo/:id
+router.get('/basicinfo/:id', async (req, res) => {
+  try {
+    const basicInfo = await Users.findByPk(req.params.id, {
+      attributes: { exclude: ['password'] },
+    });
+    if (!basicInfo) return res.status(404).json({ message: 'Not found' });
+    res.json(basicInfo);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
