@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import axios from "axios";
 import { AuthContext } from "../helpers/AuthContext";
-import ProductList from "./ProductList";
+import ProductList from "./Product";
 
 const Category = () => {
   let { id } = useParams();

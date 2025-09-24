@@ -1,12 +1,12 @@
 // seeds/index.js
 const sequelize = require('../config/connection.js');
-const { Users, Category, Product, Tag, ProductTag, Cart, ProductCart } = require('../models');
+const { User, Category, Product, Tag, ProductTag, Cart, ProductCart } = require('../models');
 
 const seedAll = async () => {
   await sequelize.sync({ force: true });
 
   // USERS
-  const demoUser = await Users.create({
+  const demoUser = await User.create({
     username: "demo",
     password: "Demo123!",
   });
@@ -55,6 +55,7 @@ const seedAll = async () => {
     { product_id: products[2].id, cart_id: demoCart.id, quantity: 1 },
   ]);
 
+  console.log("✅ Database successfully seeded!");
   process.exit(0);
 };
 

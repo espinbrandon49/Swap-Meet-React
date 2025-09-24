@@ -1,4 +1,3 @@
-// client/src/api/client.js
 import axios from "axios";
 
 let onUnauthorized = null; // optional callback from AuthContext

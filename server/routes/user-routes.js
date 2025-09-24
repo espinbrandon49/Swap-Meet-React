@@ -1,6 +1,6 @@
 // routes/user-routes.js
 const router = require('express').Router();
-const { Users } = require('../models');
+const { User } = require('../models');
 const { validateToken } = require('../middleWares/AuthMiddlewares');
 const { sign } = require('jsonwebtoken');
 
@@ -13,7 +13,7 @@ router.post('/', async (req, res) => {
     if (!username) return res.status(400).json({ error: 'username is required' });
     if (!password) return res.status(400).json({ error: 'password is required' });
 
-    const user = await Users.create({ username, password });
+    const user = await User.create({ username, password });
     res.status(201).json({ id: user.id, username: user.username });
   } catch (err) {
     if (err.name === 'SequelizeUniqueConstraintError') {
@@ -36,7 +36,7 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ error: 'username and password are required' });
     }
 
-    const user = await Users.findOne({ where: { username } });
+    const user = await User.findOne({ where: { username } });
     if (!user) return res.status(401).json({ error: 'Invalid credentials' });
 
     const ok = await user.checkPassword(password);
@@ -58,7 +58,7 @@ router.post('/login', async (req, res) => {
   }
 });
 
-//  GET /api/users/auth
+// GET /api/users/auth
 router.get('/auth', validateToken, (req, res) => {
   res.json(req.user);
 });
@@ -66,7 +66,7 @@ router.get('/auth', validateToken, (req, res) => {
 // GET /api/users/basicinfo/:id
 router.get('/basicinfo/:id', async (req, res) => {
   try {
-    const basicInfo = await Users.findByPk(req.params.id, {
+    const basicInfo = await User.findByPk(req.params.id, {
       attributes: { exclude: ['password'] },
     });
     if (!basicInfo) return res.status(404).json({ message: 'Not found' });

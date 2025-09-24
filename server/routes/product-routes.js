@@ -1,4 +1,3 @@
-
 const router = require('express').Router();
 const { Op } = require('sequelize');
 const sequelize = require('../config/connection');
@@ -7,14 +6,28 @@ const { validateToken } = require('../middleWares/AuthMiddlewares');
 
 // Helper: confirm a product belongs to the current user via its Category
 async function loadOwnedProduct(id, userId) {
-  const prod = await Product.findByPk(id, {
-    include: [{ model: Category, attributes: ['id', 'user_id'] }],
+  const prod = await Product.findOne({
+    where: { id },
+    include: [
+      {
+        model: Category,
+        as: 'category',
+        attributes: ['id', 'user_id'],
+        required: true,
+      },
+    ],
   });
-  return prod && prod.Category && prod.Category.user_id === userId ? prod : null;
+
+  if (!prod) return null;
+  return prod.category && prod.category.user_id === userId ? prod : null;
 }
 
-// GET /api/products - Owner-scoped list with optional filters
-router.get('/', validateToken, async (req, res) => {
+// ----------------------------------------------------
+// PUBLIC GET ROUTES
+// ----------------------------------------------------
+
+// GET /api/products → GLOBAL list with optional filters
+router.get('/', async (req, res) => {
   try {
     let { limit = 50, offset = 0, categoryId, tagId } = req.query;
 
@@ -27,16 +40,16 @@ router.get('/', validateToken, async (req, res) => {
       if (Number.isInteger(cid)) where.category_id = cid;
     }
 
-    const include = [{ model: Category, where: { user_id: req.user.id } }];
+    const include = [{ model: Category, as: 'category' }];
     if (tagId !== undefined) {
       const tid = parseInt(tagId, 10);
       if (Number.isInteger(tid)) {
-        include.push({ model: Tag, where: { id: tid } });
+        include.push({ model: Tag, as: 'tags', where: { id: tid } });
       } else {
-        include.push({ model: Tag });
+        include.push({ model: Tag, as: 'tags' });
       }
     } else {
-      include.push({ model: Tag });
+      include.push({ model: Tag, as: 'tags' });
     }
 
     const rows = await Product.findAll({
@@ -54,18 +67,12 @@ router.get('/', validateToken, async (req, res) => {
   }
 });
 
-// GET /api/products/by-category/:category_id
-// Verify the category belongs to the user, then list products under it
-router.get('/by-category/:category_id', validateToken, async (req, res) => {
+// GET /api/products/by-category/:category_id → GLOBAL
+router.get('/by-category/:category_id', async (req, res) => {
   try {
-    const category = await Category.findOne({
-      where: { id: req.params.category_id, user_id: req.user.id },
-    });
-    if (!category) return res.status(404).json({ message: 'Category not found' });
-
     const products = await Product.findAll({
-      where: { category_id: category.id },
-      include: [{ model: Tag }],
+      where: { category_id: req.params.category_id },
+      include: [{ model: Tag, as: 'tags' }],
     });
     res.json(products);
   } catch (err) {
@@ -73,11 +80,29 @@ router.get('/by-category/:category_id', validateToken, async (req, res) => {
   }
 });
 
-// POST /api/products
-// Guard by category ownership; optional tagIds[]
+// GET /api/products/:id → GLOBAL (view only)
+router.get('/:id', async (req, res) => {
+  try {
+    const prod = await Product.findByPk(req.params.id, {
+      include: [
+        { model: Category, as: 'category' },
+        { model: Tag, as: 'tags' }
+      ]
+    });
+    if (!prod) return res.status(404).json({ message: 'Not found' });
+    res.json(prod);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ----------------------------------------------------
+// OWNER-ONLY MUTATIONS
+// ----------------------------------------------------
+
+// POST /api/products → must own category
 router.post('/', validateToken, async (req, res) => {
   try {
-    // Pull + normalize inputs
     let { product_name, price, stock, image_url, category_id, tagIds = [] } = req.body;
     product_name = (product_name || '').trim();
     image_url = (image_url || '').trim();
@@ -86,16 +111,13 @@ router.post('/', validateToken, async (req, res) => {
     if (!product_name) return res.status(400).json({ error: 'product_name is required' });
     if (!Number.isInteger(category_id)) return res.status(400).json({ error: 'category_id must be an integer' });
 
-    // Ownership guard: category must belong to the caller
     const cat = await Category.findOne({ where: { id: category_id, user_id: req.user.id } });
     if (!cat) return res.status(403).json({ error: 'Forbidden' });
 
-    // Normalize tagIds
     tagIds = Array.isArray(tagIds)
       ? [...new Set(tagIds.map(Number).filter(Number.isInteger))]
       : [];
 
-    // Pre-validate tag existence
     if (tagIds.length) {
       const count = await Tag.count({ where: { id: { [Op.in]: tagIds } } });
       if (count !== tagIds.length) {
@@ -103,7 +125,6 @@ router.post('/', validateToken, async (req, res) => {
       }
     }
 
-    // Transaction for atomicity (product + tag attaches)
     const t = await sequelize.transaction();
     try {
       const product = await Product.create(
@@ -128,7 +149,7 @@ router.post('/', validateToken, async (req, res) => {
   }
 });
 
-// PATCH /api/products/:id
+// PATCH /api/products/:id → must own
 router.patch('/:id', validateToken, async (req, res) => {
   try {
     const prod = await loadOwnedProduct(req.params.id, req.user.id);
@@ -153,8 +174,7 @@ router.patch('/:id', validateToken, async (req, res) => {
   }
 });
 
-// DELETE /api/products/:id
-// Owner-guarded delete
+// DELETE /api/products/:id → must own
 router.delete('/:id', validateToken, async (req, res) => {
   try {
     const prod = await loadOwnedProduct(req.params.id, req.user.id);

@@ -1,32 +1,47 @@
-// models/index.js
-const Product = require('./Product');
+const User = require('./Users');
 const Category = require('./Category');
+const Product = require('./Product');
 const Tag = require('./Tag');
 const ProductTag = require('./ProductTag');
-const Users = require('./Users');
 const Cart = require('./Cart');
 const ProductCart = require('./ProductCart');
 
-// ---- Associations ----
+// --------------------
+// User ↔ Category
+// --------------------
+User.hasMany(Category, { foreignKey: 'user_id', onDelete: 'CASCADE', as: 'categories' });
+Category.belongsTo(User, { foreignKey: 'user_id', as: 'owner' });
 
-// Users <-> Category (1:M)
-Users.hasMany(Category, { foreignKey: 'user_id', onDelete: 'CASCADE' });
-Category.belongsTo(Users, { foreignKey: 'user_id', onDelete: 'CASCADE' });
+// --------------------
+// Category ↔ Product
+// --------------------
+Category.hasMany(Product, { foreignKey: 'category_id', onDelete: 'CASCADE', as: 'products' });
+Product.belongsTo(Category, { foreignKey: 'category_id', as: 'category' });
 
-// Category <-> Product (1:M)  — OPTION 1
-Category.hasMany(Product, { foreignKey: 'category_id' });
-Product.belongsTo(Category, { foreignKey: 'category_id', onDelete: 'CASCADE', onUpdate: 'CASCADE' });
+// --------------------
+// Product ↔ Tag (many-to-many)
+// --------------------
+Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'product_id', as: 'tags' });
+Tag.belongsToMany(Product, { through: ProductTag, foreignKey: 'tag_id', as: 'products' });
 
-// Product <-> Tag (M:N)
-Product.belongsToMany(Tag, { through: ProductTag, foreignKey: 'product_id', otherKey: 'tag_id', onDelete: 'CASCADE' });
-Tag.belongsToMany(Product, { through: ProductTag, foreignKey: 'tag_id', otherKey: 'product_id', onDelete: 'CASCADE' });
+// --------------------
+// User ↔ Cart
+// --------------------
+User.hasOne(Cart, { foreignKey: 'user_id', onDelete: 'CASCADE', as: 'cart' });
+Cart.belongsTo(User, { foreignKey: 'user_id', as: 'owner' });
 
-// Users <-> Cart (1:1)
-Users.hasOne(Cart, { foreignKey: 'user_id', onDelete: 'CASCADE' });
-Cart.belongsTo(Users, { foreignKey: 'user_id', onDelete: 'CASCADE' });
+// --------------------
+// Cart ↔ Product (many-to-many)
+// --------------------
+Cart.belongsToMany(Product, { through: ProductCart, foreignKey: 'cart_id', as: 'products' });
+Product.belongsToMany(Cart, { through: ProductCart, foreignKey: 'product_id', as: 'carts' });
 
-// Product <-> Cart (M:N)
-Product.belongsToMany(Cart, { through: ProductCart, foreignKey: 'product_id', otherKey: 'cart_id', onDelete: 'CASCADE' });
-Cart.belongsToMany(Product, { through: ProductCart, foreignKey: 'cart_id', otherKey: 'product_id', onDelete: 'CASCADE' });
-
-module.exports = { Product, Category, Tag, ProductTag, Users, Cart, ProductCart };
+module.exports = {
+    User,
+    Category,
+    Product,
+    Tag,
+    ProductTag,
+    Cart,
+    ProductCart,
+};
