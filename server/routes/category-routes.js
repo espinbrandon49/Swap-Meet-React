@@ -1,39 +1,51 @@
-const router = require('express').Router();
-const { Category, Product, Tag } = require('../models');
-const { validateToken } = require('../middleWares/AuthMiddlewares');
+const router = require("express").Router();
+const { Category, Product, Tag, User } = require("../models");
+const { validateToken } = require("../middleWares/AuthMiddlewares");
 
-// GET all categories (with products + tags) → GLOBAL
-router.get('/', async (req, res) => {
+// GET all categories (with owner + products + tags) → GLOBAL
+router.get("/", async (req, res) => {
   try {
     const categories = await Category.findAll({
       include: [
         {
+          model: User,
+          as: "owner", // IMPORTANT: must match Category.belongsTo(User, { as: 'owner' })
+          attributes: ["id", "username"],
+        },
+        {
           model: Product,
-          as: 'products',
-          include: [{ model: Tag, as: 'tags' }]
-        }
+          as: "products",
+          include: [{ model: Tag, as: "tags" }],
+        },
       ],
     });
+
     res.json(categories);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// GET single category by id (with products + tags) → GLOBAL
-router.get('/:id', async (req, res) => {
+// GET single category by id (with owner + products + tags) → GLOBAL
+router.get("/:id", async (req, res) => {
   try {
     const category = await Category.findOne({
       where: { id: req.params.id },
       include: [
         {
+          model: User,
+          as: "owner",
+          attributes: ["id", "username"],
+        },
+        {
           model: Product,
-          as: 'products',
-          include: [{ model: Tag, as: 'tags' }]
-        }
+          as: "products",
+          include: [{ model: Tag, as: "tags" }],
+        },
       ],
     });
-    if (!category) return res.status(404).json({ message: 'Not found' });
+
+    if (!category) return res.status(404).json({ message: "Not found" });
     res.json(category);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -41,7 +53,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // CREATE a category → OWNER ONLY
-router.post('/', validateToken, async (req, res) => {
+router.post("/", validateToken, async (req, res) => {
   try {
     const category = await Category.create({
       category_name: req.body.category_name,
@@ -54,13 +66,13 @@ router.post('/', validateToken, async (req, res) => {
 });
 
 // UPDATE a category → OWNER ONLY
-router.put('/:id', validateToken, async (req, res) => {
+router.put("/:id", validateToken, async (req, res) => {
   try {
     const [updated] = await Category.update(
       { category_name: req.body.category_name },
       { where: { id: req.params.id, user_id: req.user.id } }
     );
-    if (!updated) return res.status(404).json({ message: 'Not found' });
+    if (!updated) return res.status(404).json({ message: "Not found" });
     res.json({ id: req.params.id });
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -68,12 +80,12 @@ router.put('/:id', validateToken, async (req, res) => {
 });
 
 // DELETE a category → OWNER ONLY
-router.delete('/:id', validateToken, async (req, res) => {
+router.delete("/:id", validateToken, async (req, res) => {
   try {
     const deleted = await Category.destroy({
       where: { id: req.params.id, user_id: req.user.id },
     });
-    if (!deleted) return res.status(404).json({ message: 'Not found' });
+    if (!deleted) return res.status(404).json({ message: "Not found" });
     res.status(204).end();
   } catch (err) {
     res.status(500).json({ error: err.message });
