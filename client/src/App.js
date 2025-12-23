@@ -1,9 +1,10 @@
 import "./App.css";
-import 'bootstrap/dist/css/bootstrap.min.css';
-import Container from 'react-bootstrap/Container';
-import Nav from 'react-bootstrap/Nav';
-import Navbar from 'react-bootstrap/Navbar';
+import "bootstrap/dist/css/bootstrap.min.css";
+import Container from "react-bootstrap/Container";
+import Nav from "react-bootstrap/Nav";
+import Navbar from "react-bootstrap/Navbar";
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+
 import Home from "./pages/Home";
 import Category from "./pages/Category";
 import Registration from "./pages/Registration";
@@ -13,22 +14,28 @@ import PageNotFound from "./pages/PageNotFound";
 import Cart from "./pages/Cart";
 import Product from "./pages/Product";
 import Dashboard from "./pages/Dashboard";
+
 import { useContext } from "react";
 import { AuthContext } from "./helpers/AuthContext";
+import ProtectedRoute from "./helpers/ProtectedRoute";
 
 function App() {
   const { user, logout } = useContext(AuthContext);
 
   const handleChange = (e) => {
-    if (e.target.value === user?.username) {
+    const value = e.target.value;
+
+    if (value === user?.username) {
       window.location.replace(`/profile/${user.id}`);
+      return;
     }
 
-    if (e.target.value === "Cart") {
+    if (value === "Cart") {
       window.location.replace(`/cart/${user.id}`);
+      return;
     }
 
-    if (e.target.value === "Logout") {
+    if (value === "Logout") {
       logout();
     }
   };
@@ -40,6 +47,7 @@ function App() {
           <Container className="first-nav">
             <Navbar.Brand href="/" className="fs-1 logo-welcome">
               <i className="fa-brands fa-opencart logo-img"></i>
+
               {user && (
                 <h6 className="isLink">
                   <Link className="welcome-link link" to={`/profile/${user.id}`}>
@@ -52,28 +60,46 @@ function App() {
             <Nav>
               {!user ? (
                 <div className="first-nav-items">
-                  <Link className="link" to="/login">Login</Link>
-                  <Link className="link" to="/registration">Registration</Link>
+                  <Link className="link" to="/">
+                    Home
+                  </Link>
+                  <Link className="link" to="/login">
+                    Login
+                  </Link>
+                  <Link className="link" to="/registration">
+                    Registration
+                  </Link>
                 </div>
               ) : (
                 <div className="first-nav-items">
-                  <Link className="link" to="/">Home</Link>
+                  <Link className="link" to="/">
+                    Home
+                  </Link>
+
                   <div>
                     <label htmlFor="dropdown" className="dropdown-label link">
                       Profile
                     </label>
+
                     <select
                       className="dropdown"
-                      onClick={handleChange}
+                      onChange={handleChange}
                       name="dropdown"
                       id="dropdown"
+                      defaultValue=""
                     >
-                      <option className="dropdownItem link"> </option>
-                      <option className="dropdownItem link">
+                      <option className="dropdownItem link" value="">
+                        {" "}
+                      </option>
+                      <option className="dropdownItem link" value={user.username}>
                         {user.username}
                       </option>
-                      <option className="dropdownItem link">Cart</option>
-                      <option className="dropdownItem link">Logout</option>
+                      <option className="dropdownItem link" value="Cart">
+                        Cart
+                      </option>
+                      <option className="dropdownItem link" value="Logout">
+                        Logout
+                      </option>
                     </select>
                   </div>
                 </div>
@@ -84,33 +110,86 @@ function App() {
 
         <div className="container heading">
           <h1 className="heading-text">Swap Meet React</h1>
-          <p>A gathering at which enthusiasts or collectors trade or exchange items of common interest</p>
+          <p>
+            A gathering at which enthusiasts or collectors trade or exchange
+            items of common interest
+          </p>
         </div>
 
-        <Container className="second-nav">
-          <Link className="link" to="/addcategory">Add Category</Link>
-          <Link className="link" to="/addtag">Add Tag</Link>
-          <Link className="link" to="/addproduct">Add Product</Link>
-        </Container>
+        {/* Owner/admin links: only show when logged in (still protected by routes too) */}
+        {user && (
+          <Container className="second-nav">
+            <Link className="link" to="/addcategory">
+              Add Category
+            </Link>
+            <Link className="link" to="/addtag">
+              Add Tag
+            </Link>
+            <Link className="link" to="/addproduct">
+              Add Product
+            </Link>
+            <Link className="link" to="/dashboard">
+              Dashboard
+            </Link>
+          </Container>
+        )}
 
         <Routes>
+          {/* Public homepage */}
           <Route path="/" element={<Home />} />
-          <Route path="/profile/:id" element={<Profile />} />
-          <Route path="/dashboard" element={<Dashboard />} /> {/* owner-only */}
+
+          {/* Public browsing routes */}
           <Route path="/category/:id" element={<Category />} />
           <Route path="/product/:id" element={<Product />} />
-          <Route path="/cart/:id" element={<Cart />} />
+
+          {/* Auth pages (public) */}
           <Route path="/login" element={<Login />} />
           <Route path="/registration" element={<Registration />} />
+
+          {/* Protected routes */}
+          <Route
+            path="/profile/:id"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cart/:id"
+            element={
+              <ProtectedRoute>
+                <Cart />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* 404 */}
           <Route path="*" element={<PageNotFound />} />
         </Routes>
 
         <footer>
           <div className="media">
-            <a href="https://github.com/espinbrandon49" target="_blank" rel="noreferrer">
+            <a
+              href="https://github.com/espinbrandon49"
+              target="_blank"
+              rel="noreferrer"
+            >
               <i className="fa-solid fa-globe icon"></i>
             </a>
-            <a href="https://espinbrandon49.github.io/Brandon-Espinosa-Portfolio/" target="_blank" rel="noreferrer">
+            <a
+              href="https://espinbrandon49.github.io/Brandon-Espinosa-Portfolio/"
+              target="_blank"
+              rel="noreferrer"
+            >
               <i className="fa-brands fa-github icon"></i>
             </a>
           </div>
