@@ -495,3 +495,60 @@ footer {
 }
 
 /* end of sign in/register */
+
+.micro-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: rgba(60, 60, 60, 0.92);
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  z-index: 9999;
+  animation: fadeUp 0.2s ease-out;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* =========================
+   Category Discovery Override
+   ========================= */
+
+/* Always show essentials in discovery view */
+.category-page .product-description {
+  opacity: 1;
+  visibility: visible;
+  background-color: rgba(255, 255, 238, 0.78);
+}
+
+/* Keep the hover polish (slight dim), without hiding info */
+.category-page .product:hover .product-img {
+  opacity: 0.75;
+}
+
+/* =========================
+   Profile Shop Override
+   ========================= */
+
+/* Always show essentials on shop pages too */
+.profile-items .product-description {
+  opacity: 1;
+  visibility: visible;
+  background-color: rgba(255, 255, 238, 0.78);
+}
+
+/* Keep the hover polish (slight dim), without hiding info */
+.profile-items .product:hover .product-img {
+  opacity: 0.75;
+}

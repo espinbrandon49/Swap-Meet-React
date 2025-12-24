@@ -1,72 +1,155 @@
-import React, { useEffect, useState, useContext } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
-import axios from "axios";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import api from "../api/client";
 import { AuthContext } from "../helpers/AuthContext";
-import ProductList from "./Product";
 
 const Category = () => {
-  let { id } = useParams();
-  const [singleCategory, setSingleCategory] = useState({});
-  const { authState } = useContext(AuthContext);
-  const navigate = useNavigate()
+  const { id } = useParams(); // category id
+  const { user } = useContext(AuthContext);
+
+  const [category, setCategory] = useState(null);
+  const [products, setProducts] = useState([]);
+  const [busyPid, setBusyPid] = useState(null);
+  const [toast, setToast] = useState(false);
 
   useEffect(() => {
-    axios.get(`https://swapmeetreact-4f408e945efe.herokuapp.com/api/categories/${id}`).then((response) => {
-      setSingleCategory(response.data);
-    });
-  }, []);
+    let mounted = true;
 
-  const deleteCategory = (id) => {
-    if (singleCategory.products.length > 0) {
-      alert("Cannot Delete Categories With Products")
-    } else {
-      axios
-        .delete(`https://swapmeetreact-4f408e945efe.herokuapp.com/api/categories/${id}`, {
-          headers: { accessToken: localStorage.getItem("accessToken") },
-        })
-        .then(() => {
-          navigate('/')
-        })
+    const load = async () => {
+      try {
+        // Fetch category (includes owner)
+        const categoryRes = await api.get(`/api/categories/${id}`);
+
+        // Fetch products belonging to this category
+        const productsRes = await api.get(`/api/products/by-category/${id}`);
+
+        if (!mounted) return;
+
+        setCategory(categoryRes.data);
+        setProducts(Array.isArray(productsRes.data) ? productsRes.data : []);
+      } catch (err) {
+        console.error("Failed to load category:", err);
+        if (!mounted) return;
+        setCategory(null);
+        setProducts([]);
+      }
+    };
+
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [id]);
+
+  const showToast = () => {
+    setToast(true);
+    setTimeout(() => setToast(false), 1200);
+  };
+
+  const currency = useMemo(
+    () =>
+      new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }),
+    []
+  );
+
+  const quickAdd = async (pid) => {
+    if (!user?.id) return;
+
+    try {
+      setBusyPid(pid);
+
+      await api.post("/api/cart/items", {
+        product_id: pid,
+        quantity: 1,
+      });
+
+      showToast();
+
+      // Notify App.js to refresh cart count
+      window.dispatchEvent(new CustomEvent("cart:changed"));
+
+    } catch (err) {
+      console.error("Quick add failed:", err);
+    } finally {
+      setBusyPid(null);
     }
-  }
-
-  const editCategoryName = (defaultValue) => {
-    let newCategoryName = prompt('Enter new category name', defaultValue)
-    let pid = singleCategory.products.map((value, i) => value.id)
-    axios
-      .put("https://swapmeetreact-4f408e945efe.herokuapp.com/api/categories/categoryName", {
-        newCategoryName: newCategoryName,
-        id: id,
-        pid: pid
-      },
-        {
-          headers: { accessToken: localStorage.getItem("accessToken") },
-        }
-      );
-    setSingleCategory({ ...singleCategory, category_name: newCategoryName })
-  }
+  };
 
   return (
-    <div className="container">
+    <div className="container category-page">
       <div className="category-header">
         <div className="category-subheader">
           <h2 className="featured-items">
-            {singleCategory.category_name}
+            {category?.category_name || "Category"}
           </h2>
-          {authState.username === singleCategory.username &&
-            <i class="fa-solid fa-pen-to-square" onClick={() => editCategoryName(singleCategory.category_name)}></i>
-          }
+          <div style={{ opacity: 0.8 }}>
+            {products.length} item{products.length === 1 ? "" : "s"}
+          </div>
         </div>
-
-        <Link className="link isLink" to={`/profile/${singleCategory.userId}`} ><h2 className="welcome-link">at {singleCategory.username}</h2></Link>
-
-        {authState.username === singleCategory.username &&
-          <button onClick={() => { deleteCategory(singleCategory.id) }} className="form-button remove">
-            Delete
-          </button>
-        }
       </div>
-      <ProductList singleCategory={singleCategory} />
+
+      <div className="product-wrapper">
+        {products.map((p) => {
+          // ✅ CORRECT: shop = category owner
+          const shopId = category.user_id;
+
+          const imgSrc =
+            p.image_url || "https://picsum.photos/400/300";
+
+          return (
+            <div className="product" key={p.id}>
+              <img
+                className="product-img"
+                src={imgSrc}
+                alt={p.product_name || "Product"}
+                onError={(e) => {
+                  e.currentTarget.src = "https://picsum.photos/400/300";
+                }}
+              />
+
+              <div className="product-description">
+                <h6 className="product-name">{p.product_name}</h6>
+
+                <p className="product-price">
+                  Price: {currency.format(Number(p.price || 0))}
+                </p>
+
+                <div className="product-button">
+                  <Link className="link isLink" to={`/profile/${shopId}`}>
+                    <span className="welcome-link">Shop</span>
+                  </Link>
+
+                  <button
+                    className="form-button product-button"
+                    onClick={() => quickAdd(p.id)}
+                    disabled={!user?.id || busyPid === p.id}
+                    title={!user?.id ? "Login required" : "Quick Add"}
+                    style={{ minWidth: 52, marginLeft: 10 }}
+                  >
+                    {busyPid === p.id ? "..." : "🛒"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {products.length === 0 && (
+        <div className="text-center" style={{ marginTop: 18, opacity: 0.85 }}>
+          No products found in this category.
+        </div>
+      )}
+
+      {toast && (
+        <div className="micro-toast">
+          Added to cart
+        </div>
+      )}
+
     </div>
   );
 };

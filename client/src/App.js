@@ -15,12 +15,53 @@ import Cart from "./pages/Cart";
 import Product from "./pages/Product";
 import Dashboard from "./pages/Dashboard";
 
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "./helpers/AuthContext";
 import ProtectedRoute from "./helpers/ProtectedRoute";
 
+// ✅ Use your configured axios client (env-based baseURL, token interceptor)
+import api from "./api/client";
+
 function App() {
   const { user, logout } = useContext(AuthContext);
+
+  // ✅ Cart badge count (Option 1)
+  const [cartCount, setCartCount] = useState(0);
+
+  const refreshCartCount = async () => {
+    try {
+      if (!user?.id) {
+        setCartCount(0);
+        return;
+      }
+
+      // Cart endpoint: GET /api/cart/:id
+      const res = await api.get("/api/cart/me");
+
+      const count = Array.isArray(res.data?.products)
+        ? res.data.products.length
+        : 0;
+
+      setCartCount(count);
+    } catch {
+      // MVP: fail silently
+      setCartCount(0);
+    }
+  };
+
+  // Initial refresh when user changes
+  useEffect(() => {
+    refreshCartCount();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  // Listen for global cart updates from Category/Product
+  useEffect(() => {
+    const handler = () => refreshCartCount();
+    window.addEventListener("cart:changed", handler);
+    return () => window.removeEventListener("cart:changed", handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
 
   const handleChange = (e) => {
     const value = e.target.value;
@@ -37,6 +78,8 @@ function App() {
 
     if (value === "Logout") {
       logout();
+      // keep badge quiet and consistent after logout
+      setCartCount(0);
     }
   };
 
@@ -94,9 +137,12 @@ function App() {
                       <option className="dropdownItem link" value={user.username}>
                         {user.username}
                       </option>
+
+                      {/* ✅ Option 1: Silent badge update via label only */}
                       <option className="dropdownItem link" value="Cart">
-                        Cart
+                        {cartCount > 0 ? `Cart (${cartCount})` : "Cart"}
                       </option>
+
                       <option className="dropdownItem link" value="Logout">
                         Logout
                       </option>
@@ -141,20 +187,13 @@ function App() {
           {/* Public browsing routes */}
           <Route path="/category/:id" element={<Category />} />
           <Route path="/product/:id" element={<Product />} />
+          <Route path="/profile/:id" element={<Profile />} />
 
           {/* Auth pages (public) */}
           <Route path="/login" element={<Login />} />
           <Route path="/registration" element={<Registration />} />
 
           {/* Protected routes */}
-          <Route
-            path="/profile/:id"
-            element={
-              <ProtectedRoute>
-                <Profile />
-              </ProtectedRoute>
-            }
-          />
           <Route
             path="/cart/:id"
             element={

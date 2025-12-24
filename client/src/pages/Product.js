@@ -170,28 +170,28 @@ const ProductList = ({ singleCategory }) => {
   //PRODUCT ROUTES
   const addToCart = (pid) => {
     axios
-      .post('https://swapmeetreact-4f408e945efe.herokuapp.com/api/products/addtocart',
-        {
-          pid: pid
-        },
+      .post(
+        "https://swapmeetreact-4f408e945efe.herokuapp.com/api/products/addtocart",
+        { pid: pid },
         {
           headers: { accessToken: localStorage.getItem("accessToken") },
-        })
+        }
+      )
       .then((response) => {
-        console.log(response.data)
+        console.log(response.data);
+
+        // ✅ notify App.js to refresh cart badge
+        window.dispatchEvent(new CustomEvent("cart:changed"));
       })
-      .then(() => toast.success('Product added to your Cart!', {
-        transition: Flip,
-        position: "top-center",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-        progress: undefined,
-        theme: "light",
-      }))
-  }
+      .then(() =>
+        toast.success("Product added to your Cart!", {
+          transition: Flip,
+          position: "top-center",
+          autoClose: 3000,
+          theme: "light",
+        })
+      );
+  };
 
   return (
     <>
