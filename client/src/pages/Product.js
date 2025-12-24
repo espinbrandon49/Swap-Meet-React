@@ -1,386 +1,174 @@
-import React, { useEffect, useState, useContext } from "react";
-import { useParams } from "react-router-dom";
-import axios from "axios";
-import { Formik, Form, Field, ErrorMessage } from "formik";
-import * as Yup from "yup";
+// src/pages/Product.js
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import api from "../api/client";
 import { AuthContext } from "../helpers/AuthContext";
 
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-import { Slide, Zoom, Flip, Bounce } from 'react-toastify';
+const Product = () => {
+  const { id } = useParams(); // product id
+  const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
 
-const ProductList = ({ singleCategory }) => {
-  let { id } = useParams();
-  const [products, setProducts] = useState([]);
-  const [tags, setTags] = useState([]);
-  const [image, setImage] = useState({})
-  const { authState } = useContext(AuthContext);
-  const [allCategories, setAllCategories] = useState([]);
-  const [shoppingCart, setShoppingCart] = useState({})
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const [toast, setToast] = useState(false);
+
+  const currency = useMemo(
+    () =>
+      new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }),
+    []
+  );
 
   useEffect(() => {
-    axios.get("https://swapmeetreact-4f408e945efe.herokuapp.com/api/categories").then((response) => {
-      setAllCategories(response.data);
-    })
+    let mounted = true;
 
-    axios.get(`https://swapmeetreact-4f408e945efe.herokuapp.com/api/products/${id}`).then((response) => {
-      setProducts(response.data);
-    });
+    const load = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get(`/api/products/${id}`);
 
-    axios.get(`https://swapmeetreact-4f408e945efe.herokuapp.com/api/tags`).then((response) => {
-      setTags(response.data);
-    });
+        // Accept either an object OR an array response
+        const data = res.data;
+        const p = Array.isArray(data) ? data[0] : data;
 
-    axios.get(`https://swapmeetreact-4f408e945efe.herokuapp.com/api/cart/${id}`).then((response) => {
-      setShoppingCart(response.data)
-    });
-  }, []);
+        if (!mounted) return;
+        setProduct(p || null);
+      } catch (err) {
+        console.error("Failed to load product:", err);
+        if (!mounted) return;
+        setProduct(null);
+      } finally {
+        if (!mounted) return;
+        setLoading(false);
+      }
+    };
 
-  function nameCategory() {
-    let categoryName
-    if (allCategories.length > 0) {
-      categoryName = allCategories.filter((value, i) => value.id == id)[0].category_name
-    }
-    return categoryName
-  }
+    load();
+    return () => {
+      mounted = false;
+    };
+  }, [id]);
 
-  const initialValues = {
-    image: "rangerTab.png",
-    product_name: "",
-    username: authState.username,
-    price: "",
-    stock: "",
-    categoryName: "",
-    category_id: "",
-    userId: authState.id,
-    tagIds: [],
+  const showToast = () => {
+    setToast(true);
+    setTimeout(() => setToast(false), 1200);
   };
 
-  const validationSchema = Yup.object().shape({
-    product_name: Yup.string().min(3).max(15).required("Product names are 3-15 characters long"),
-    price: Yup.number().required("Price is a number").positive(),
-    stock: Yup.number().required("Stock is an integer").positive().integer(),
-    tagIds: Yup.number().required("Please Select A Tag").typeError('Please select at least one tag')
-  });
+  const quickAdd = async () => {
+    if (!user?.id) {
+      navigate("/login");
+      return;
+    }
+    if (!product?.id) return;
 
-  const onSubmit = (data, { resetForm }) => {
-    sendImage()
-    axios
-      .post("https://swapmeetreact-4f408e945efe.herokuapp.com/api/products",
-        {
-          image: image.name.replace(/\s/g, '').toLowerCase(),
-          product_name: data.product_name,
-          username: authState.username,
-          price: data.price,
-          stock: data.stock,
-          categoryName: !id ? data.category_id.split(',')[1] : nameCategory(),
-          category_id: !id ? data.category_id.split(',')[0] : id,
-          userId: authState.id,
-          tagIds: data.tagIds,
-        },
-        {
-          headers: {
-            accessToken: localStorage.getItem("accessToken"),
-          },
-        })
-      .then((response) => {
-        if (response.data.error) {
-          console.log(response.data.error);
-        } else {
-          const productToAdd = response.data;
-          setProducts([...products, data]);
-          window.location.replace(`/category/${!id ? data.category_id.split(',')[0] : id}`)
-          resetForm();
-        }
+    try {
+      setBusy(true);
+      await api.post("/api/cart/items", {
+        product_id: product.id,
+        quantity: 1,
       });
-  };
 
-  // Post image
-  const fileOnChange = (event) => {
-    setImage(event.target.files[0])
-  }
-
-  const sendImage = (event) => {
-    let formData = new FormData()
-    formData.append('image', image)
-    axios
-      .post("https://swapmeetreact-4f408e945efe.herokuapp.com/api/products/upload", formData, {})
-      .then((response) => {
-        console.log(response)
-      })
-  }
-
-  const deleteProduct = (id) => {
-    axios
-      .delete(`https://swapmeetreact-4f408e945efe.herokuapp.com/api/products/${id}`, {
-        headers: { accessToken: localStorage.getItem("accessToken") },
-      })
-      .then(() => {
-        setProducts(
-          products.filter((val) => {
-            return val.id !== id;
-          })
-        );
-      })
-      .then(() => window.location.reload())
-  };
-
-  const editProduct = (field, defaultValue, pid) => {
-    if (field === "product_name") {
-      let newProductName = prompt('Enter new product name', defaultValue);
-      axios
-        .put("https://swapmeetreact-4f408e945efe.herokuapp.com/api/products/productName", {
-          newProductName: newProductName,
-          id: pid
-        },
-          {
-            headers: { accessToken: localStorage.getItem("accessToken") },
-          }
-        );
-      setProducts([...products])
-    } else if (field === "price") {
-      let newProductPrice = prompt('Enter new price', defaultValue);
-      axios
-        .put("https://swapmeetreact-4f408e945efe.herokuapp.com/api/products/productPrice", {
-          newProductPrice: newProductPrice,
-          id: pid
-        },
-          {
-            headers: { accessToken: localStorage.getItem("accessToken") },
-          }
-        )
-        .then(() => {
-          setProducts([...products,]);
-        });
-    } else {
-      let newStock = prompt('Enter new stock count', defaultValue);
-      axios
-        .put("https://swapmeetreact-4f408e945efe.herokuapp.com/api/products/stock", {
-          newStock: newStock,
-          id: pid
-        },
-          {
-            headers: { accessToken: localStorage.getItem("accessToken") },
-          }
-        );
+      window.dispatchEvent(new CustomEvent("cart:changed"));
+      showToast();
+    } catch (err) {
+      console.error("Add to cart failed:", err);
+    } finally {
+      setBusy(false);
     }
-    window.location.replace(`/category/${id}`)
+  };
+
+  if (loading) {
+    return (
+      <div className="container" style={{ paddingTop: 18 }}>
+        Loading product...
+      </div>
+    );
   }
 
-  //PRODUCT ROUTES
-  const addToCart = (pid) => {
-    axios
-      .post(
-        "https://swapmeetreact-4f408e945efe.herokuapp.com/api/products/addtocart",
-        { pid: pid },
-        {
-          headers: { accessToken: localStorage.getItem("accessToken") },
-        }
-      )
-      .then((response) => {
-        console.log(response.data);
+  if (!product) {
+    return (
+      <div className="container" style={{ paddingTop: 18 }}>
+        <h3 style={{ marginBottom: 10 }}>Product not found</h3>
+        <button className="form-button" onClick={() => navigate(-1)}>
+          Back
+        </button>
+      </div>
+    );
+  }
 
-        // ✅ notify App.js to refresh cart badge
-        window.dispatchEvent(new CustomEvent("cart:changed"));
-      })
-      .then(() =>
-        toast.success("Product added to your Cart!", {
-          transition: Flip,
-          position: "top-center",
-          autoClose: 3000,
-          theme: "light",
-        })
-      );
-  };
+  const imgSrc = product.image_url || "https://picsum.photos/800/600";
+  const seller =
+    product.owner?.username ||
+    product.user?.username ||
+    product.username ||
+    product.owner_username ||
+    "";
 
   return (
-    <>
-      <div className="product-wrapper">
-        {products.map((value, key) => {
-          return (
-            <div className="product" key={value.id * 1111} >
-              <img className="product-img" src={`https://swapmeetreact-4f408e945efe.herokuapp.com/public/image-${value.image}`} alt={`product that is a ${value.product}`} />
-              <div className="product-description" key={value.id + 5005}>
-                <h6 className="product-name">
-                  {value.product_name}
-                  {authState.username === value.username &&
-                    <i className="fa-solid fa-pen-to-square product-edit"
-                      onClick={() => {
-                        if (authState.username === value.username) {
-                          editProduct("product_name", value.product_name, value.id)
-                        }
-                      }}>
-                    </i>
-                  }
-                </h6>
-                <h6 className="product-price">
-                  Price: ${value.price}
-                  {authState.username === value.username &&
-                    <i className="fa-solid fa-pen-to-square product-edit"
-                      onClick={() => {
-                        if (authState.username === value.username) {
-                          editProduct("price", value.price, value.id)
-                        }
-                      }}>
-                    </i>
-                  }
-                </h6>
-                <h6 className="product-price">
-                  Stock: {value.stock}
-                  {
-                    authState.username === value.username &&
-                    <i className="fa-solid fa-pen-to-square product-edit"
-                      onClick={() => {
-                        if (authState.username === value.username) {
-                          editProduct("stock", value.stock, value.id)
-                        }
-                      }}>
-                    </i>
-                  }
-                </h6>
-                <h6 className="productList-tags">
-                  {tags
-                    .filter((tag) => {
-                      let x = tag.products.map((el) => el.product_name);
-                      if (x.includes(value.product_name)) {
-                        return tag.tag_name;
-                      }
-                    })
-                    .map((el) => <span> &nbsp; {"#" + el.tag_name}
-                    </span>)}
-                </h6>
-                <div className="product-button">
-                  {
-                    authState.username === value.username
-                      ? <button onClick={() => deleteProduct(value.id)} className="form-button product-button"
-                      >
-                        Remove
-                      </button>
-                      : <>
-                        <button onClick={() => addToCart(value.id)} className="form-button product-button" >
-                          Add
-                        </button>
-                        < ToastContainer
-                          position="top-center"
-                          autoClose={3000}
-                          hideProgressBar={false}
-                          newestOnTop={false}
-                          closeOnClick
-                          rtl={false}
-                          pauseOnFocusLoss
-                          draggable
-                          pauseOnHover
-                          theme="light"
-                        />
-                      </>
-                  }
-                </div>
-              </div>
+    <div className="container" style={{ paddingTop: 18 }}>
+      <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
+        <div style={{ flex: "1 1 320px", maxWidth: 520 }}>
+          <img
+            src={imgSrc}
+            alt={product.product_name || "Product"}
+            style={{ width: "100%", borderRadius: 10, objectFit: "cover" }}
+            onError={(e) => {
+              e.currentTarget.src = "https://picsum.photos/800/600";
+            }}
+          />
+        </div>
+
+        <div style={{ flex: "1 1 320px", minWidth: 280 }}>
+          <h2 style={{ marginTop: 0 }}>
+            {product.product_name || "Unnamed product"}
+          </h2>
+
+          <p style={{ fontSize: 18, marginTop: 8 }}>
+            {currency.format(Number(product.price || 0))}
+          </p>
+
+          {seller && (
+            <p style={{ opacity: 0.85, marginTop: 6 }}>
+              Sold by: <strong>{seller}</strong>
+            </p>
+          )}
+
+          {product.description && (
+            <p style={{ marginTop: 12, whiteSpace: "pre-wrap" }}>
+              {product.description}
+            </p>
+          )}
+
+          <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+            <button className="form-button" onClick={() => navigate(-1)}>
+              Back
+            </button>
+
+            <button
+              className="form-button"
+              onClick={quickAdd}
+              disabled={!user?.id || busy}
+              title={!user?.id ? "Login required" : "Add to cart"}
+            >
+              {busy ? "..." : "🛒 Quick Add"}
+            </button>
+          </div>
+
+          {!user?.id && (
+            <div style={{ marginTop: 10, opacity: 0.8 }}>
+              Login to add this item to your cart.
             </div>
-          );
-        })}
+          )}
+        </div>
       </div>
 
-      {singleCategory.username === authState.username &&
-        <div className="category-addProduct">
-          <p className="form-title category-addProduct-title">Add Product</p>
-          <Formik onSubmit={onSubmit} initialValues={initialValues} validationSchema={validationSchema}>
-            <Form>
-              <div className="form-elements container">
-                <div className="form-field">
-                  <Field
-                    autoComplete="off"
-                    className="input-field"
-                    id="product_nameInput" name="product_name"
-                    placeholder="Product name" />
-                  <ErrorMessage
-                    name="product_name"
-                    component="div"
-                    className="error-msg"
-                  />
-                </div>
-
-                <div className="form-field">
-                  <Field
-                    autoComplete="off"
-                    className="input-field"
-                    id="priceInput"
-                    name="price"
-                    placeholder="Price" />
-                  <ErrorMessage
-                    name="price"
-                    component="div"
-                    className="error-msg"
-                  />
-                </div>
-
-                <div className="form-field">
-                  <Field
-                    autoComplete="off"
-                    className="input-field"
-                    id="stock_nameInput"
-                    name="stock"
-                    placeholder="Stock" />
-                  <ErrorMessage
-                    name="stock"
-                    component="div"
-                    className="error-msg"
-                  />
-                </div>
-
-                {!id &&
-                  <div className="form-field">
-                    <Field
-                      className="input-field"
-                      as="select"
-                      name="category_id"
-                    >
-                      <option>Select A Category</option>
-                      {allCategories.map((value, i) => {
-                        return <option key={i} value={[value.id, value.category_name]} label={value.category_name}>value.category_name</option>
-                      })
-                      }
-                    </Field>
-                    <label>Select Category</label>
-                    <ErrorMessage
-                      name="category_id"
-                      component="div"
-                      className="error-msg" />
-                  </div>}
-              </div>
-
-
-              <div className="field-tags">
-                {tags.map((tag, key) => {
-                  return (
-                    <div className="tags-input">
-                      <Field
-                        key={tag.id}
-                        type="checkbox"
-                        name="tagIds"
-                        value={tag.id.toString()} />
-                      <label >{tag.tag_name + " "}</label>
-                    </div>
-                  );
-                })}
-                <ErrorMessage
-                  className="error-msg"
-                  name="tagIds" component="div" />
-              </div>
-
-              <div className="addProduct-buttons" >
-                <input id="file" name="file" type="file" onChange={fileOnChange} className="file-input" />
-
-                <button type="submit" className="form-button addProduct-button">
-                  Add Product
-                </button>
-              </div>
-            </Form>
-          </Formik>
-        </div>
-      }
-    </>
+      {toast && <div className="micro-toast">Added to cart</div>}
+    </div>
   );
 };
 
-export default ProductList;
+export default Product;

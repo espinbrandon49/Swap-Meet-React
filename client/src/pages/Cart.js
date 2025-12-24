@@ -1,119 +1,202 @@
-import React, { useContext, useEffect, useState } from "react";
-import axios from "axios";
-import { useParams } from "react-router-dom";
+// src/pages/Cart.js
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import api from "../api/client";
 import { AuthContext } from "../helpers/AuthContext";
 
 const Cart = () => {
-  const { authState } = useContext(AuthContext);
-  const [username, setUsername] = useState("");
-  const [cart, setCart] = useState(false);
-  const [shoppingCart, setShoppingCart] = useState({});
-  const [total, setTotal] = useState(0)
-  let { id } = useParams();
+  const { user } = useContext(AuthContext);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    axios.get(`https://swapmeetreact-4f408e945efe.herokuapp.com/api/cart/${id}`).then((response) => {
-      if (response.data.id > 0) {
-        setCart(true)
-        setShoppingCart(response.data)
+  const [cart, setCart] = useState({ products: [] });
+  const [loading, setLoading] = useState(true);
+  const [busyPid, setBusyPid] = useState(null);
+
+  const currency = useMemo(
+    () =>
+      new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }),
+    []
+  );
+
+  const qtyOf = (p) => Number(p?.product_cart?.quantity ?? 1);
+
+  // -------------------------
+  // Load cart once
+  // -------------------------
+  const loadCart = async () => {
+    try {
+      setLoading(true);
+      const res = await api.get("/api/cart/me");
+      setCart(res.data || { products: [] });
+    } catch (err) {
+      if (err?.response?.status === 404) {
+        setCart({ products: [] });
+      } else {
+        console.error("Failed to load cart:", err);
+        setCart({ products: [] });
       }
-    });
-    axios.get(`https://swapmeetreact-4f408e945efe.herokuapp.com/api/auth/basicinfo/${id}`).then((response) => {
-      setUsername(response.data.username);
-    });
-  }, [setCart]);
-
-  useEffect(() => {
-    setTotal(shoppingCartTotal)
-  }, [shoppingCart])
-
-  const shoppingCartTotal = () => {
-    let total = 0
-    if (shoppingCart.products) {
-      for (let i = 0; i < shoppingCart.products.length; i++) {
-        total += parseInt(shoppingCart.products[i].price)
-      }
+    } finally {
+      setLoading(false);
     }
-    return total
+  };
+
+  useEffect(() => {
+    if (!user?.id) return;
+    loadCart();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  // -------------------------
+  // Optimistic quantity update
+  // -------------------------
+  const applyLocalQty = (product_id, quantity) => {
+    setCart((prev) => {
+      const products = Array.isArray(prev?.products) ? prev.products : [];
+
+      const nextProducts = products
+        .map((p) =>
+          p.id === product_id
+            ? {
+              ...p,
+              product_cart: {
+                ...(p.product_cart || {}),
+                quantity,
+              },
+            }
+            : p
+        )
+        .filter((p) => Number(p?.product_cart?.quantity ?? 1) > 0);
+
+      return { ...prev, products: nextProducts };
+    });
+  };
+
+  const setQty = async (product_id, quantity) => {
+    const scrollY = window.scrollY;
+
+    const prevQty =
+      qtyOf(cart?.products?.find((p) => p.id === product_id)) || 1;
+
+    // ✅ optimistic update (no re-render jump)
+    applyLocalQty(product_id, quantity);
+
+    try {
+      setBusyPid(product_id);
+      await api.patch("/api/cart/items", { product_id, quantity });
+      window.dispatchEvent(new CustomEvent("cart:changed"));
+    } catch (err) {
+      // rollback on failure
+      applyLocalQty(product_id, prevQty);
+      await loadCart();
+    } finally {
+      setBusyPid(null);
+      window.scrollTo({ top: scrollY, left: 0, behavior: "auto" });
+    }
+  };
+
+  const total = useMemo(() => {
+    const items = Array.isArray(cart?.products) ? cart.products : [];
+    return items.reduce(
+      (sum, p) => sum + Number(p.price || 0) * qtyOf(p),
+      0
+    );
+  }, [cart]);
+
+  // -------------------------
+  // Guards
+  // -------------------------
+  if (!user?.id) {
+    return (
+      <div className="container" style={{ paddingTop: 18 }}>
+        <h2>Shopping Cart</h2>
+        <button className="form-button" onClick={() => navigate("/login")}>
+          Login
+        </button>
+      </div>
+    );
   }
 
-  const createCart = () => {
-    axios.post('https://swapmeetreact-4f408e945efe.herokuapp.com/api/cart/createCart',
-      {},
-      {
-        headers: { accessToken: localStorage.getItem("accessToken") },
-      }).then((response) => {
-        console.log('pink')
-        console.log(response.data)
-        setCart(true)
-      });
-    // window.location.reload()
+  if (loading) {
+    return (
+      <div className="container" style={{ paddingTop: 18 }}>
+        Loading cart...
+      </div>
+    );
   }
 
-  const removeFromCart = (event) => {
-    axios.post("https://swapmeetreact-4f408e945efe.herokuapp.com/api/products/removefromcart",
-      {
-        pid: event.target.value.split(',')[1],
-        cid: event.target.value.split(',')[0]
-      }
-    )
-    window.location.reload()
-  }
+  const products = Array.isArray(cart?.products) ? cart.products : [];
 
-  const currencyFormat = (num) => '$' + num.toFixed(2).replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1,')
-
-
+  // -------------------------
+  // Render
+  // -------------------------
   return (
     <div className="container">
       <div className="cart-header">
         <h2 className="featured-items cart-subheader">Shopping Cart</h2>
-        {(!cart)
-          ? <button
-            className="form-button"
-            onClick={createCart}>Create Cart</button>
-          : <h3 className="cart-total">Total:{currencyFormat(total)} </h3>}
+        <h3 className="cart-total">Total: {currency.format(total)}</h3>
       </div>
 
-      <>
-        {shoppingCart && (
-          shoppingCart.products?.length === 0 && (
-            <div className="text-center">Shopping Cart Empty</div>
-          )
-        )}
-        {cart && (
-          shoppingCart.products?.length > 0 && (
-            <div className="product-wrapper product-wrapper-cart">
-              {shoppingCart.products.map((value, i) => {
-                return (
-                  <div className="cart-product" key={i * 333}>
-                    <img
-                      className="cart-img"
-                      src={`https://swapmeetreact-4f408e945efe.herokuapp.com/public/image-${value.image}`}
-                    />
-                    <h6 className="cart-product-name">
-                      {value.product_name}
-                    </h6>
-                    <p className="product-price">
-                      Price: ${value.price}
-                    </p>
-                    <div>
-                      <button
-                        className="form-button remove"
-                        onClick={removeFromCart}
-                        value={[value.product_cart.id, value.id]}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          )
-        )}
-      </>
-    </div>
-  )
-}
+      {products.length === 0 ? (
+        <div className="text-center">Shopping Cart Empty</div>
+      ) : (
+        <div className="product-wrapper product-wrapper-cart">
+          {products.map((p) => {
+            const qty = qtyOf(p);
+            const disabled = busyPid === p.id;
+            const imgSrc = p.image_url || "https://picsum.photos/400/300";
 
-export default Cart
+            return (
+              <div className="cart-product" key={p.id}>
+                <img
+                  className="cart-img"
+                  src={imgSrc}
+                  alt={p.product_name}
+                />
+
+                <h6 className="cart-product-name">{p.product_name}</h6>
+
+                <p className="product-price">
+                  Price: {currency.format(Number(p.price || 0))}
+                </p>
+
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <button
+                    type="button"
+                    className="form-button"
+                    disabled={disabled}
+                    onClick={() => setQty(p.id, qty - 1)}
+                  >
+                    -
+                  </button>
+
+                  <div style={{ minWidth: 90, textAlign: "center" }}>
+                    Qty: <strong>{qty}</strong>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="form-button"
+                    disabled={disabled}
+                    onClick={() => setQty(p.id, qty + 1)}
+                  >
+                    +
+                  </button>
+                </div>
+
+                <div style={{ marginTop: 8, opacity: 0.85 }}>
+                  Line total:{" "}
+                  {currency.format(Number(p.price || 0) * qty)}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default Cart;

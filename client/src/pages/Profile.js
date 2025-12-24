@@ -1,3 +1,4 @@
+// src/pages/Profile.js
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ListGroup from "react-bootstrap/ListGroup";
@@ -5,13 +6,14 @@ import api from "../api/client";
 import { AuthContext } from "../helpers/AuthContext";
 
 const Profile = () => {
-  const { id } = useParams(); // profile user id
+  const { id } = useParams(); // profile user id (shop owner)
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
 
-  const [username, setUsername] = useState("");
+  const [shopName, setShopName] = useState("");
   const [categories, setCategories] = useState([]);
   const [busyPid, setBusyPid] = useState(null);
+  const [toast, setToast] = useState(false);
 
   const isOwner = useMemo(() => {
     if (!user?.id) return false;
@@ -23,22 +25,31 @@ const Profile = () => {
 
     const loadShop = async () => {
       try {
-        // Your backend supports GET /api/categories (includes owner + products)
+        // Expected: categories include { user_id } and ideally { owner } and { products }
         const res = await api.get("/api/categories");
         const all = Array.isArray(res.data) ? res.data : [];
 
-        // Filter categories owned by this profile user
-        const mine = all.filter((c) => String(c?.owner?.id) === String(id));
+        const mine = all.filter((c) => {
+          const ownerId = c.user_id ?? c.owner?.id ?? c.owner_id;
+          return String(ownerId) === String(id);
+        });
 
         if (!mounted) return;
 
         setCategories(mine);
-        setUsername(mine[0]?.owner?.username || "");
+
+        const name =
+          mine[0]?.owner?.username ??
+          mine[0]?.username ??
+          mine[0]?.owner_username ??
+          "";
+
+        setShopName(name);
       } catch (err) {
         console.error("Failed to load shop:", err);
         if (!mounted) return;
         setCategories([]);
-        setUsername("");
+        setShopName("");
       }
     };
 
@@ -48,7 +59,21 @@ const Profile = () => {
     };
   }, [id]);
 
-  const addToCart = async (pid) => {
+  const showToast = () => {
+    setToast(true);
+    setTimeout(() => setToast(false), 1200);
+  };
+
+  const currency = useMemo(
+    () =>
+      new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }),
+    []
+  );
+
+  const quickAdd = async (pid) => {
     if (!user?.id) {
       navigate("/login");
       return;
@@ -56,10 +81,19 @@ const Profile = () => {
 
     try {
       setBusyPid(pid);
-      await api.post("/api/products/addtocart", { pid });
+
+      // ✅ Match Step 2 pattern (Category.js): cart items endpoint
+      await api.post("/api/cart/items", {
+        product_id: pid,
+        quantity: 1,
+      });
+
+      showToast();
+
+      // Notify App.js cart badge refresh
       window.dispatchEvent(new CustomEvent("cart:changed"));
     } catch (err) {
-      console.error("Add to cart failed:", err);
+      console.error("Quick add failed:", err);
     } finally {
       setBusyPid(null);
     }
@@ -69,17 +103,28 @@ const Profile = () => {
     <div className="container profile-items">
       <div className="profile-header">
         <div>
-          {/* No user image endpoint in your current routes; keep a placeholder */}
           <img
             className="profile-img"
             src={"https://picsum.photos/200/200"}
-            alt={username || "Shop"}
+            alt={shopName || "Shop"}
           />
         </div>
 
-        <h2 className="featured-items">
-          {isOwner ? "Your Shop" : username || "Shop"}
-        </h2>
+        <div>
+          <h2 className="featured-items m-0">
+            {shopName || (isOwner ? "Your Shop" : "Shop")}
+          </h2>
+
+          {isOwner && (
+            <button
+              className="form-button"
+              style={{ marginTop: 10 }}
+              onClick={() => navigate("/dashboard")}
+            >
+              Manage My Shop
+            </button>
+          )}
+        </div>
       </div>
 
       {categories.length === 0 && (
@@ -88,55 +133,77 @@ const Profile = () => {
         </div>
       )}
 
-      {categories.map((cat) => (
-        <div className="category-list" key={cat.id}>
-          <ListGroup onClick={() => navigate(`/category/${cat.id}`)}>
-            <ListGroup.Item className="border-0 p-0 link category-item category-name name-profile">
-              {cat.category_name}
-            </ListGroup.Item>
-          </ListGroup>
+      {categories.map((cat) => {
+        const products = Array.isArray(cat.products) ? cat.products : [];
 
-          <div className="product-wrapper">
-            {(Array.isArray(cat.products) ? cat.products : []).map((p) => (
-              <div className="product" key={p.id}>
-                <img
-                  className="product-img"
-                  src={p.image_url || "https://picsum.photos/400/300"}
-                  alt={p.product_name || "Product"}
-                  onError={(e) => {
-                    e.currentTarget.src = "https://picsum.photos/400/300";
-                  }}
-                />
+        return (
+          <div className="category-list" key={cat.id}>
+            {/* Category title (clickable) */}
+            <ListGroup onClick={() => navigate(`/category/${cat.id}`)}>
+              <ListGroup.Item className="border-0 p-0 link category-item category-name name-profile">
+                {cat.category_name}
+              </ListGroup.Item>
+            </ListGroup>
 
-                <div className="product-description">
-                  <h6 className="product-name">{p.product_name}</h6>
-                  <p className="product-price">Price: ${p.price}</p>
+            {/* Inline products */}
+            <div className="product-wrapper">
+              {products.map((p) => {
+                const imgSrc = p.image_url || "https://picsum.photos/400/300";
 
-                  <div className="product-button">
-                    {isOwner ? (
-                      <button
-                        className="form-button product-button"
-                        onClick={() => navigate(`/category/${cat.id}`)}
-                      >
-                        Manage
-                      </button>
-                    ) : (
-                      <button
-                        className="form-button product-button"
-                        onClick={() => addToCart(p.id)}
-                        disabled={busyPid === p.id}
-                        style={{ minWidth: 120 }}
-                      >
-                        {busyPid === p.id ? "Adding..." : "Add To Cart"}
-                      </button>
-                    )}
+                return (
+                  <div className="product" key={p.id}>
+                    <img
+                      className="product-img"
+                      src={imgSrc}
+                      alt={p.product_name || "Product"}
+                      onError={(e) => {
+                        e.currentTarget.src = "https://picsum.photos/400/300";
+                      }}
+                    />
+
+                    <div className="product-description">
+                      <h6 className="product-name">{p.product_name}</h6>
+
+                      <p className="product-price">
+                        Price: {currency.format(Number(p.price || 0))}
+                      </p>
+
+                      {/* Footer actions */}
+                      <div className="product-button" style={{ gap: 10 }}>
+                        <button
+                          className="form-button product-button"
+                          onClick={() => navigate(`/product/${p.id}`)}
+                          style={{ minWidth: 90 }}
+                        >
+                          View
+                        </button>
+
+                        <button
+                          className="form-button product-button"
+                          onClick={() => quickAdd(p.id)}
+                          disabled={!user?.id || busyPid === p.id}
+                          title={!user?.id ? "Login required" : "Quick Add"}
+                          style={{ minWidth: 52 }}
+                        >
+                          {busyPid === p.id ? "..." : "🛒"}
+                        </button>
+                      </div>
+                    </div>
                   </div>
+                );
+              })}
+
+              {products.length === 0 && (
+                <div style={{ marginTop: 10, opacity: 0.8 }}>
+                  No products in this category yet.
                 </div>
-              </div>
-            ))}
+              )}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
+
+      {toast && <div className="micro-toast">Added to cart</div>}
     </div>
   );
 };
