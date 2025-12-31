@@ -101,14 +101,16 @@ const Category = () => {
 
           return (
             <div className="product" key={p.id}>
-              <img
-                className="product-img"
-                src={imgSrc}
-                alt={p.product_name || "Product"}
-                onError={(e) => {
-                  e.currentTarget.src = "https://picsum.photos/400/300";
-                }}
-              />
+              <Link to={`/product/${p.id}`} className="product-link">
+                <img
+                  className="product-img"
+                  src={imgSrc}
+                  alt={p.product_name || "Product"}
+                  onError={(e) => {
+                    e.currentTarget.src = "https://picsum.photos/400/300";
+                  }}
+                />
+              </Link>
 
               <div className="product-description">
                 <h6 className="product-name">{p.product_name}</h6>
