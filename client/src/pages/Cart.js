@@ -1,6 +1,8 @@
 // src/pages/Cart.js
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Button from "react-bootstrap/Button";
+import Modal from "react-bootstrap/Modal";
 import api from "../api/client";
 import { AuthContext } from "../helpers/AuthContext";
 
@@ -11,6 +13,8 @@ const Cart = () => {
   const [cart, setCart] = useState({ products: [] });
   const [loading, setLoading] = useState(true);
   const [busyPid, setBusyPid] = useState(null);
+
+  const [showCheckout, setShowCheckout] = useState(false);
 
   const currency = useMemo(
     () =>
@@ -80,12 +84,15 @@ const Cart = () => {
     const prevQty =
       qtyOf(cart?.products?.find((p) => p.id === product_id)) || 1;
 
-    // ✅ optimistic update (no re-render jump)
-    applyLocalQty(product_id, quantity);
+    // clamp so UI never shows negative quantities
+    const nextQty = Math.max(0, Number(quantity) || 0);
+
+    // ✅ optimistic update
+    applyLocalQty(product_id, nextQty);
 
     try {
       setBusyPid(product_id);
-      await api.patch("/api/cart/items", { product_id, quantity });
+      await api.patch("/api/cart/items", { product_id, quantity: nextQty });
       window.dispatchEvent(new CustomEvent("cart:changed"));
     } catch (err) {
       // rollback on failure
@@ -128,6 +135,7 @@ const Cart = () => {
   }
 
   const products = Array.isArray(cart?.products) ? cart.products : [];
+  const isEmpty = products.length === 0;
 
   // -------------------------
   // Render
@@ -136,10 +144,9 @@ const Cart = () => {
     <div className="container">
       <div className="cart-header">
         <h2 className="featured-items cart-subheader">Shopping Cart</h2>
-        <h3 className="cart-total">Total: {currency.format(total)}</h3>
       </div>
 
-      {products.length === 0 ? (
+      {isEmpty ? (
         <div className="text-center">Shopping Cart Empty</div>
       ) : (
         <div className="product-wrapper product-wrapper-cart">
@@ -150,11 +157,7 @@ const Cart = () => {
 
             return (
               <div className="cart-product" key={p.id}>
-                <img
-                  className="cart-img"
-                  src={imgSrc}
-                  alt={p.product_name}
-                />
+                <img className="cart-img" src={imgSrc} alt={p.product_name} />
 
                 <h6 className="cart-product-name">{p.product_name}</h6>
 
@@ -187,14 +190,57 @@ const Cart = () => {
                 </div>
 
                 <div style={{ marginTop: 8, opacity: 0.85 }}>
-                  Line total:{" "}
-                  {currency.format(Number(p.price || 0) * qty)}
+                  Line total: {currency.format(Number(p.price || 0) * qty)}
                 </div>
               </div>
             );
           })}
         </div>
       )}
+
+      {/* Summary + Checkout */}
+      <div
+        className="cart-summary"
+        style={{
+          marginTop: 18,
+          paddingTop: 14,
+          borderTop: "1px solid rgba(0,0,0,0.12)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+          flexWrap: "wrap",
+        }}
+      >
+        <h3 className="cart-total" style={{ margin: 0 }}>
+          Total: {currency.format(total)}
+        </h3>
+
+        <Button
+          variant="primary"
+          disabled={isEmpty}
+          onClick={() => setShowCheckout(true)}
+        >
+          Checkout
+        </Button>
+      </div>
+
+      {/* MVP Checkout Modal */}
+      <Modal show={showCheckout} onHide={() => setShowCheckout(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Checkout</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          <p style={{ marginBottom: 0 }}>Thanks for testing checkout!</p>
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowCheckout(false)}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
   );
 };
