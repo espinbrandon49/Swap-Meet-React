@@ -17,6 +17,7 @@ A fully functional RESTful API for managing users, categories, products, tags, a
 - Shopping cart with item quantities  
 - Full CRUD support across all entities  
 - Sequelize models with associations and alias consistency  
+- Tags are scaffolded for future filtering and discovery but are not part of the MVP user flow.
 
 ---
 

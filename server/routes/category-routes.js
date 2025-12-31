@@ -1,8 +1,8 @@
 const router = require("express").Router();
-const { Category, Product, Tag, User } = require("../models");
+const { Category, Product, User } = require("../models");
 const { validateToken } = require("../middleWares/AuthMiddlewares");
 
-// GET all categories (with owner + products + tags) → GLOBAL
+// GET all categories (with owner + products) → GLOBAL
 router.get("/", async (req, res) => {
   try {
     const categories = await Category.findAll({
@@ -15,7 +15,6 @@ router.get("/", async (req, res) => {
         {
           model: Product,
           as: "products",
-          include: [{ model: Tag, as: "tags" }],
         },
       ],
     });
@@ -26,7 +25,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// GET single category by id (with owner + products + tags) → GLOBAL
+// GET single category by id (with owner + products) → GLOBAL
 router.get("/:id", async (req, res) => {
   try {
     const category = await Category.findOne({
@@ -40,7 +39,6 @@ router.get("/:id", async (req, res) => {
         {
           model: Product,
           as: "products",
-          include: [{ model: Tag, as: "tags" }],
         },
       ],
     });

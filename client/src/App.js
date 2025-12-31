@@ -5,7 +5,7 @@ import Container from "react-bootstrap/Container";
 import Nav from "react-bootstrap/Nav";
 import Navbar from "react-bootstrap/Navbar";
 
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useMemo, useState } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -42,38 +42,45 @@ function App() {
 
 function AppShell() {
   const navigate = useNavigate();
-  const { user, logout } = useContext(AuthContext);
+  const { user, logout, authLoaded } = useContext(AuthContext);
 
-  // Cart badge count
+  // Cart badge count (sum quantities)
   const [cartCount, setCartCount] = useState(0);
+
+  const isLoggedIn = !!user?.id;
+
+  const computeCartCount = (cart) => {
+    const products = Array.isArray(cart?.products) ? cart.products : [];
+    return products.reduce(
+      (sum, p) => sum + Number(p?.product_cart?.quantity ?? 1),
+      0
+    );
+  };
 
   const refreshCartCount = async () => {
     try {
-      if (!user?.id) {
+      if (!isLoggedIn) {
         setCartCount(0);
         return;
       }
 
-      // ✅ Backend supports GET /api/cart/me (token-based)
       const res = await api.get("/api/cart/me");
-      const count = Array.isArray(res.data?.products)
-        ? res.data.products.length
-        : 0;
-
-      setCartCount(count);
-    } catch {
-      // MVP: fail silently
-      setCartCount(0);
+      setCartCount(computeCartCount(res.data));
+    } catch (err) {
+      // 404 = no cart yet
+      if (err?.response?.status === 404) setCartCount(0);
+      else setCartCount(0);
     }
   };
 
-  // Refresh when user changes
+  // Refresh when auth rehydrates or user changes
   useEffect(() => {
+    if (!authLoaded) return;
     refreshCartCount();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id]);
+  }, [authLoaded, user?.id]);
 
-  // Listen for global cart updates
+  // Listen for global cart updates (Category/Product/Profile/Cart dispatch this)
   useEffect(() => {
     const handler = () => refreshCartCount();
     window.addEventListener("cart:changed", handler);
@@ -81,46 +88,48 @@ function AppShell() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  const handleChange = (e) => {
+  const handleProfileDropdown = (e) => {
     const value = e.target.value;
 
-    if (value === user?.username) {
-      // ✅ client-side navigation (no reload)
+    if (!value) return;
+
+    if (value === "MY_SHOP") {
       navigate(`/profile/${user.id}`);
-      e.target.value = "";
-      return;
     }
 
-    if (value === "Cart") {
-      // ✅ client-side navigation (no reload)
-      navigate(`/cart/${user.id}`);
-      e.target.value = "";
-      return;
+    if (value === "DASHBOARD") {
+      navigate("/dashboard");
     }
 
-    if (value === "Logout") {
+    if (value === "LOGOUT") {
       logout();
       setCartCount(0);
-      e.target.value = "";
+      navigate("/");
     }
+
+    // reset dropdown selection back to placeholder
+    e.target.value = "";
   };
+
+  // Prevent nav “flicker” while auth rehydrates
+  if (!authLoaded) return null;
 
   return (
     <>
+      {/* Primary Nav (clean map): Home + Cart + Profile dropdown */}
       <Navbar expand="md">
         <Container className="first-nav">
-          <Navbar.Brand href="/" className="fs-1 logo-welcome">
-            <i className="fa-brands fa-opencart logo-img"></i>
+          <div className="logo-welcome">
+            <Navbar.Brand as={Link} to="/" className="fs-1">
+              <i className="fa-brands fa-opencart logo-img"></i>
+            </Navbar.Brand>
 
             {user && (
-              <h6 className="isLink">
-                <Link className="welcome-link link" to={`/profile/${user.id}`}>
-                  Welcome {user.username}
-                </Link>
-              </h6>
+              <Link className="welcome-link link" to={`/profile/${user.id}`}>
+                Welcome {user.username}
+              </Link>
             )}
-          </Navbar.Brand>
-
+          </div>
           <Nav>
             {!user ? (
               <div className="first-nav-items">
@@ -140,6 +149,10 @@ function AppShell() {
                   Home
                 </Link>
 
+                <Link className="link" to="/cart">
+                  {cartCount > 0 ? `Cart (${cartCount})` : "Cart"}
+                </Link>
+
                 <div>
                   <label htmlFor="dropdown" className="dropdown-label link">
                     Profile
@@ -147,7 +160,7 @@ function AppShell() {
 
                   <select
                     className="dropdown"
-                    onChange={handleChange}
+                    onChange={handleProfileDropdown}
                     name="dropdown"
                     id="dropdown"
                     defaultValue=""
@@ -156,15 +169,15 @@ function AppShell() {
                       {" "}
                     </option>
 
-                    <option className="dropdownItem link" value={user.username}>
-                      {user.username}
+                    <option className="dropdownItem link" value="MY_SHOP">
+                      My Shop
                     </option>
 
-                    <option className="dropdownItem link" value="Cart">
-                      {cartCount > 0 ? `Cart (${cartCount})` : "Cart"}
+                    <option className="dropdownItem link" value="DASHBOARD">
+                      Dashboard
                     </option>
 
-                    <option className="dropdownItem link" value="Logout">
+                    <option className="dropdownItem link" value="LOGOUT">
                       Logout
                     </option>
                   </select>
@@ -183,23 +196,7 @@ function AppShell() {
         </p>
       </div>
 
-      {/* Owner/admin links */}
-      {user && (
-        <Container className="second-nav">
-          <Link className="link" to="/addcategory">
-            Add Category
-          </Link>
-          <Link className="link" to="/addtag">
-            Add Tag
-          </Link>
-          <Link className="link" to="/addproduct">
-            Add Product
-          </Link>
-          <Link className="link" to="/dashboard">
-            Dashboard
-          </Link>
-        </Container>
-      )}
+      {/* ✅ Removed second-nav completely (Dashboard moved into dropdown) */}
 
       <Routes>
         {/* Public */}
@@ -214,7 +211,7 @@ function AppShell() {
 
         {/* Protected */}
         <Route
-          path="/cart/:id"
+          path="/cart"
           element={
             <ProtectedRoute>
               <Cart />
