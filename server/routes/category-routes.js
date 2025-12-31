@@ -79,6 +79,20 @@ router.put("/:id", validateToken, async (req, res) => {
   }
 });
 
+// PATCH a category → OWNER ONLY (alias for PUT)
+router.patch("/:id", validateToken, async (req, res) => {
+  try {
+    const [updated] = await Category.update(
+      { category_name: req.body.category_name },
+      { where: { id: req.params.id, user_id: req.user.id } }
+    );
+    if (!updated) return res.status(404).json({ message: "Not found" });
+    res.json({ id: req.params.id });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 // DELETE a category → OWNER ONLY
 router.delete("/:id", validateToken, async (req, res) => {
   try {
