@@ -368,15 +368,27 @@ footer {
 
 /* Button sizing helper used in product card UI */
 .product-button {
-  width: 75%;
+  width: auto;
+  flex: 1;
   font-size: 0.7rem !important;
   border-radius: var(--radius-md) !important;
+}
+
+.product-actions-inline {
+  width: 100%;
 }
 
 /* Shared inline actions row */
 .product-actions-inline {
   display: flex;
   gap: 10px;
+  align-items: center;
+  justify-content: center;
+}
+
+.product-view-btn,
+.product-cart-btn {
+  height: 32px;
 }
 
 .product-view-btn {
@@ -388,7 +400,24 @@ footer {
 }
 
 /* Overlay behavior override for discovery/shop views */
-.category-page .product-description,
+.category-page .product {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.category-page .product-description {
+  position: static;
+  transform: none;
+  opacity: 1;
+  visibility: visible;
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0;
+  background: transparent;
+  border: none;
+}
+
 .profile-items .product-description {
   opacity: 1;
   visibility: visible;
@@ -543,7 +572,12 @@ footer {
 
 .category-cart-btn {
   min-width: 52px;
-  margin-left: 10px;
+  margin-left: 0;
+}
+
+.category-page .product-actions-inline {
+  justify-content: center;
+  align-items: center;
 }
 
 /* ---------- Profile ---------- */

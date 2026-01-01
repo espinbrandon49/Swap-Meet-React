@@ -63,6 +63,12 @@ export const AuthProvider = ({ children }) => {
         // Try JWT first
         const payload = parseJwt(token);
 
+        if (!payload) {
+            logout();
+            setAuthLoaded(true);
+            return;
+        }
+
         // Fallback to stored user (most reliable for your UI)
         const storedUserRaw = localStorage.getItem("user");
         const storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : null;
@@ -89,7 +95,10 @@ export const AuthProvider = ({ children }) => {
         setAuthLoaded(true);
     }, []);
 
-    useEffect(() => setOnUnauthorized(() => logout), []);
+    useEffect(() => {
+        setOnUnauthorized(() => logout());
+    }, []);
+
 
     return (
         <AuthContext.Provider value={{ user, authLoaded, login, logout }}>
