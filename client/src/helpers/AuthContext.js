@@ -25,7 +25,6 @@ export const AuthProvider = ({ children }) => {
     const [authLoaded, setAuthLoaded] = useState(false);
 
     const logout = () => {
-        // clean up both keys (you used "token" previously)
         localStorage.removeItem("accessToken");
         localStorage.removeItem("token");
         localStorage.removeItem("user");
@@ -56,7 +55,6 @@ export const AuthProvider = ({ children }) => {
             return;
         }
 
-        // normalize storage (move legacy token -> accessToken)
         localStorage.setItem("accessToken", token);
         localStorage.removeItem("token");
 
@@ -69,7 +67,7 @@ export const AuthProvider = ({ children }) => {
             return;
         }
 
-        // Fallback to stored user (most reliable for your UI)
+        // Fallback to stored user
         const storedUserRaw = localStorage.getItem("user");
         const storedUser = storedUserRaw ? JSON.parse(storedUserRaw) : null;
 

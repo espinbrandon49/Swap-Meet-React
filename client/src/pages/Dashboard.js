@@ -16,9 +16,6 @@ export default function Dashboard() {
     const { user } = useContext(AuthContext);
     const navigate = useNavigate();
 
-    // -------------------------
-    // MVP thumbnail pool
-    // -------------------------
     const THUMBS = useMemo(
         () => [
             "https://picsum.photos/id/1011/600/400",
@@ -33,27 +30,21 @@ export default function Dashboard() {
         []
     );
 
-    // -------------------------
-    // Data
-    // -------------------------
     const [loading, setLoading] = useState(true);
-    const [categories, setCategories] = useState([]); // owned categories (with products if backend includes)
-    const [products, setProducts] = useState([]); // derived from categories
+    const [categories, setCategories] = useState([]); // categories owned by logged-in user
+    const [products, setProducts] = useState([]); // products flattened from owned categories
 
     const reload = async () => {
         if (!user?.id) return;
 
         setLoading(true);
         try {
-            // Expectation: /api/categories returns all categories; we filter to owner.
-            // Ideally categories rows include { products } (as in Profile.js expectation).
             const res = await api.get("/api/categories");
             const all = Array.isArray(res.data) ? res.data : [];
 
             const mine = all.filter((c) => String(c.user_id) === String(user.id));
             setCategories(mine);
 
-            // Flatten products from owned categories (works if backend includes products)
             const flat = [];
             for (const c of mine) {
                 const ps = Array.isArray(c.products) ? c.products : [];
@@ -75,9 +66,6 @@ export default function Dashboard() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user?.id]);
 
-    // -------------------------
-    // Category: add/edit/delete
-    // -------------------------
     const [newCatName, setNewCatName] = useState("");
 
     const [showEditCat, setShowEditCat] = useState(false);
@@ -95,7 +83,6 @@ export default function Dashboard() {
         if (!name) return;
 
         try {
-            // Needs backend: POST /api/categories (token) { category_name }
             await api.post("/api/categories", { category_name: name });
             setNewCatName("");
             await reload();
@@ -109,7 +96,6 @@ export default function Dashboard() {
         if (!editCatId || !name) return;
 
         try {
-            // Needs backend: PATCH /api/categories/:id (token)
             await api.patch(`/api/categories/${editCatId}`, { category_name: name });
             setShowEditCat(false);
             setEditCatId(null);
@@ -128,7 +114,6 @@ export default function Dashboard() {
         if (!ok) return;
 
         try {
-            // Needs backend: DELETE /api/categories/:id (token)
             await api.delete(`/api/categories/${catId}`);
             await reload();
         } catch (err) {
@@ -136,9 +121,6 @@ export default function Dashboard() {
         }
     };
 
-    // -------------------------
-    // Product: add/edit/delete
-    // -------------------------
     const [newProd, setNewProd] = useState({
         product_name: "",
         price: "",
@@ -177,7 +159,6 @@ export default function Dashboard() {
         if (!Number.isInteger(payload.category_id)) return alert("Category is required");
 
         try {
-            // Needs backend: POST /api/products (token)
             await api.post("/api/products", payload);
             setNewProd({
                 product_name: "",
@@ -209,7 +190,6 @@ export default function Dashboard() {
         if (!Number.isInteger(payload.category_id)) return alert("Category is required");
 
         try {
-            // Needs backend: PATCH /api/products/:id (token)
             await api.patch(`/api/products/${editProd.id}`, payload);
             setShowEditProd(false);
             setEditProd(null);
@@ -224,7 +204,6 @@ export default function Dashboard() {
         if (!ok) return;
 
         try {
-            // Needs backend: DELETE /api/products/:id (token)
             await api.delete(`/api/products/${pid}`);
             await reload();
         } catch (err) {
@@ -232,9 +211,6 @@ export default function Dashboard() {
         }
     };
 
-    // -------------------------
-    // Guard
-    // -------------------------
     if (!user?.id) {
         return (
             <div className="container dashboard-page">
@@ -247,12 +223,8 @@ export default function Dashboard() {
         );
     }
 
-    // -------------------------
-    // UI
-    // -------------------------
     return (
         <div className="container dashboard-page">
-            {/* Breadcrumb / nav back to shop */}
             <div className="dashboard-breadcrumb">
                 <Link className="link" to={`/profile/${user.id}`}>
                     ← Back to My Shop
@@ -272,13 +244,11 @@ export default function Dashboard() {
                 </Card>
             ) : (
                 <Row className="g-3">
-                    {/* ---------------------- Categories ---------------------- */}
                     <Col xs={12} lg={5}>
                         <Card>
                             <Card.Body>
                                 <Card.Title className="mb-3">Categories</Card.Title>
 
-                                {/* Add category */}
                                 <Form
                                     onSubmit={(e) => {
                                         e.preventDefault();
@@ -344,13 +314,11 @@ export default function Dashboard() {
                         </Card>
                     </Col>
 
-                    {/* ---------------------- Products ---------------------- */}
                     <Col xs={12} lg={7}>
                         <Card>
                             <Card.Body>
                                 <Card.Title className="mb-3">Products</Card.Title>
 
-                                {/* Add product */}
                                 <Card className="mb-3">
                                     <Card.Body>
                                         <Form
@@ -446,7 +414,6 @@ export default function Dashboard() {
                                     </Card.Body>
                                 </Card>
 
-                                {/* Product list */}
                                 {products.length === 0 ? (
                                     <div className="dashboard-empty">No products yet.</div>
                                 ) : (
@@ -483,7 +450,11 @@ export default function Dashboard() {
                                                 </div>
 
                                                 <div className="dashboard-actions">
-                                                    <Button size="sm" variant="outline-dark" onClick={() => openEditProduct(p)}>
+                                                    <Button
+                                                        size="sm"
+                                                        variant="outline-dark"
+                                                        onClick={() => openEditProduct(p)}
+                                                    >
                                                         Edit
                                                     </Button>
                                                     <Button
@@ -504,7 +475,6 @@ export default function Dashboard() {
                 </Row>
             )}
 
-            {/* ---------------------- Modals ---------------------- */}
             <Modal show={showEditCat} onHide={() => setShowEditCat(false)} centered>
                 <Modal.Header closeButton>
                     <Modal.Title>Edit Category</Modal.Title>

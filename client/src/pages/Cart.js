@@ -50,7 +50,6 @@ const Cart = () => {
   useEffect(() => {
     if (!user?.id) return;
     loadCart();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
   // -------------------------

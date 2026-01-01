@@ -241,14 +241,13 @@ function AppShell() {
             <i className="fa-solid fa-globe icon"></i>
           </a>
           <a
-            href="https://espinbrandon49.github.io/Brandon-Espinosa-Portfolio/"
+            href="https://github.com/espinbrandon49/Swap-Meet-React"
             target="_blank"
             rel="noreferrer"
           >
             <i className="fa-brands fa-github icon"></i>
           </a>
         </div>
-        <p>Project By Brandon Espinosa</p>
       </footer>
     </>
   );

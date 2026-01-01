@@ -23,7 +23,6 @@
   /* terracotta */
   --link-hover: #b86b3d;
 
-  /* Legacy var you already use (light-on-dark buttons) */
   --second-color: #fffaf0;
 
   /* Typography */
@@ -176,14 +175,11 @@ body {
    ========================================================= */
 
 /* ---------- Navbar ---------- */
-
-/* Safe: applies if App.js uses .first-nav anywhere */
 .first-nav {
   background: var(--paper);
   border-bottom: 1px solid var(--border);
 }
 
-/* If you’re using Bootstrap <Navbar>, this helps without new markup */
 .navbar {
   background: var(--paper) !important;
   border-bottom: 1px solid var(--border);

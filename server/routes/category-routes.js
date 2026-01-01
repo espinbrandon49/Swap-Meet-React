@@ -9,7 +9,7 @@ router.get("/", async (req, res) => {
       include: [
         {
           model: User,
-          as: "owner", // IMPORTANT: must match Category.belongsTo(User, { as: 'owner' })
+          as: "owner", 
           attributes: ["id", "username"],
         },
         {

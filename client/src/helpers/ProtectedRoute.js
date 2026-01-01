@@ -6,7 +6,7 @@ export default function ProtectedRoute({ children }) {
     const { user, authLoaded } = useContext(AuthContext);
 
     // Wait for AuthContext to finish rehydrating
-    if (!authLoaded) return null; // or a small "Loading..." div
+    if (!authLoaded) return null;
 
     if (!user) return <Navigate to="/login" replace />;
     return children;

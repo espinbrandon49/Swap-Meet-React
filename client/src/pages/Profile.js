@@ -25,7 +25,6 @@ const Profile = () => {
 
     const loadShop = async () => {
       try {
-        // Expected: categories include { user_id } and ideally { owner } and { products }
         const res = await api.get("/api/categories");
         const all = Array.isArray(res.data) ? res.data : [];
 
@@ -82,7 +81,6 @@ const Profile = () => {
     try {
       setBusyPid(pid);
 
-      // ✅ Match Step 2 pattern (Category.js): cart items endpoint
       await api.post("/api/cart/items", {
         product_id: pid,
         quantity: 1,

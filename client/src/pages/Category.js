@@ -93,7 +93,6 @@ const Category = () => {
 
       <div className="product-wrapper">
         {products.map((p) => {
-          // ✅ CORRECT: shop = category owner
           const shopId = category.user_id;
 
           const imgSrc =

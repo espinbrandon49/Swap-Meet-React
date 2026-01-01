@@ -34,7 +34,7 @@ router.get("/me", validateToken, async (req, res) => {
   }
 });
 
-// ADD item to cart (increments if already present)
+// ADD item to cart
 router.post("/items", validateToken, async (req, res) => {
   try {
     const product_id = Number(req.body.product_id);
