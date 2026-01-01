@@ -237,7 +237,7 @@ export default function Dashboard() {
     // -------------------------
     if (!user?.id) {
         return (
-            <div className="container" style={{ paddingTop: 18 }}>
+            <div className="container dashboard-page">
                 <h2>Dashboard</h2>
                 <p>Login required.</p>
                 <Button variant="dark" onClick={() => navigate("/login")}>
@@ -251,18 +251,18 @@ export default function Dashboard() {
     // UI
     // -------------------------
     return (
-        <div className="container" style={{ paddingTop: 18 }}>
+        <div className="container dashboard-page">
             {/* Breadcrumb / nav back to shop */}
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+            <div className="dashboard-breadcrumb">
                 <Link className="link" to={`/profile/${user.id}`}>
                     ← Back to My Shop
                 </Link>
-                <span style={{ opacity: 0.5 }}>|</span>
-                <span style={{ opacity: 0.85 }}>Owner Dashboard</span>
+                <span className="dashboard-sep">|</span>
+                <span className="dashboard-crumb">Owner Dashboard</span>
             </div>
 
-            <h2 style={{ marginBottom: 6 }}>Dashboard</h2>
-            <p style={{ opacity: 0.8, marginBottom: 18 }}>
+            <h2 className="dashboard-title">Dashboard</h2>
+            <p className="dashboard-subtitle">
                 Manage your categories and products. (MVP thumbnails use a static dropdown.)
             </p>
 
@@ -301,9 +301,9 @@ export default function Dashboard() {
                                     </Row>
                                 </Form>
 
-                                <div style={{ marginTop: 14 }}>
+                                <div className="dashboard-top-spacer">
                                     {categories.length === 0 ? (
-                                        <div style={{ opacity: 0.8 }}>No categories yet.</div>
+                                        <div className="dashboard-empty">No categories yet.</div>
                                     ) : (
                                         <ListGroup>
                                             {categories.map((c) => (
@@ -312,14 +312,14 @@ export default function Dashboard() {
                                                     className="d-flex align-items-center justify-content-between"
                                                 >
                                                     <div>
-                                                        <div style={{ fontWeight: 600 }}>{c.category_name}</div>
-                                                        <div style={{ opacity: 0.7, fontSize: 13 }}>
+                                                        <div className="dashboard-strong">{c.category_name}</div>
+                                                        <div className="dashboard-cat-meta">
                                                             {Array.isArray(c.products) ? c.products.length : 0} product
                                                             {Array.isArray(c.products) && c.products.length === 1 ? "" : "s"}
                                                         </div>
                                                     </div>
 
-                                                    <div style={{ display: "flex", gap: 8 }}>
+                                                    <div className="dashboard-actions">
                                                         <Button
                                                             size="sm"
                                                             variant="outline-dark"
@@ -375,9 +375,7 @@ export default function Dashboard() {
                                                     <Form.Label className="mb-1">Price</Form.Label>
                                                     <Form.Control
                                                         value={newProd.price}
-                                                        onChange={(e) =>
-                                                            setNewProd((p) => ({ ...p, price: e.target.value }))
-                                                        }
+                                                        onChange={(e) => setNewProd((p) => ({ ...p, price: e.target.value }))}
                                                         placeholder="14.99"
                                                     />
                                                 </Col>
@@ -386,9 +384,7 @@ export default function Dashboard() {
                                                     <Form.Label className="mb-1">Stock</Form.Label>
                                                     <Form.Control
                                                         value={newProd.stock}
-                                                        onChange={(e) =>
-                                                            setNewProd((p) => ({ ...p, stock: e.target.value }))
-                                                        }
+                                                        onChange={(e) => setNewProd((p) => ({ ...p, stock: e.target.value }))}
                                                         placeholder="10"
                                                     />
                                                 </Col>
@@ -427,22 +423,16 @@ export default function Dashboard() {
                                                 </Col>
 
                                                 <Col xs={12} className="d-flex align-items-center justify-content-between">
-                                                    <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                                                    <div className="dashboard-thumb-row">
                                                         <img
+                                                            className="dashboard-thumb"
                                                             src={newProd.image_url}
                                                             alt="preview"
-                                                            style={{
-                                                                width: 84,
-                                                                height: 56,
-                                                                objectFit: "cover",
-                                                                borderRadius: 8,
-                                                                border: "1px solid rgba(0,0,0,0.15)",
-                                                            }}
                                                             onError={(e) => {
                                                                 e.currentTarget.src = THUMBS[0];
                                                             }}
                                                         />
-                                                        <div style={{ opacity: 0.7, fontSize: 13 }}>
+                                                        <div className="dashboard-thumb-note">
                                                             Upgrade later: store URL from Cloudinary/Firebase.
                                                         </div>
                                                     </div>
@@ -458,7 +448,7 @@ export default function Dashboard() {
 
                                 {/* Product list */}
                                 {products.length === 0 ? (
-                                    <div style={{ opacity: 0.8 }}>No products yet.</div>
+                                    <div className="dashboard-empty">No products yet.</div>
                                 ) : (
                                     <ListGroup>
                                         {products.map((p) => (
@@ -466,44 +456,34 @@ export default function Dashboard() {
                                                 key={p.id}
                                                 className="d-flex align-items-center justify-content-between"
                                             >
-                                                <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+                                                <div className="dashboard-product-row">
                                                     <img
+                                                        className="dashboard-thumb"
                                                         src={p.image_url || THUMBS[0]}
                                                         alt={p.product_name}
-                                                        style={{
-                                                            width: 84,
-                                                            height: 56,
-                                                            objectFit: "cover",
-                                                            borderRadius: 8,
-                                                            border: "1px solid rgba(0,0,0,0.15)",
-                                                        }}
                                                         onError={(e) => {
                                                             e.currentTarget.src = THUMBS[0];
                                                         }}
                                                     />
 
                                                     <div>
-                                                        <div style={{ fontWeight: 600 }}>{p.product_name}</div>
-                                                        <div style={{ opacity: 0.75, fontSize: 13 }}>
+                                                        <div className="dashboard-strong">{p.product_name}</div>
+                                                        <div className="dashboard-product-meta">
                                                             {p._category?.category_name ? (
                                                                 <>
                                                                     Category: <strong>{p._category.category_name}</strong>{" "}
-                                                                    <span style={{ opacity: 0.5 }}>•</span>{" "}
+                                                                    <span className="dashboard-dot">•</span>{" "}
                                                                 </>
                                                             ) : null}
                                                             ${Number(p.price || 0).toFixed(2)}{" "}
-                                                            <span style={{ opacity: 0.5 }}>•</span>{" "}
+                                                            <span className="dashboard-dot">•</span>{" "}
                                                             Stock: {Number(p.stock ?? 0)}
                                                         </div>
                                                     </div>
                                                 </div>
 
-                                                <div style={{ display: "flex", gap: 8 }}>
-                                                    <Button
-                                                        size="sm"
-                                                        variant="outline-dark"
-                                                        onClick={() => openEditProduct(p)}
-                                                    >
+                                                <div className="dashboard-actions">
+                                                    <Button size="sm" variant="outline-dark" onClick={() => openEditProduct(p)}>
                                                         Edit
                                                     </Button>
                                                     <Button
@@ -556,9 +536,7 @@ export default function Dashboard() {
                             <Form.Label className="mb-1">Name</Form.Label>
                             <Form.Control
                                 value={editProd?.product_name || ""}
-                                onChange={(e) =>
-                                    setEditProd((p) => ({ ...p, product_name: e.target.value }))
-                                }
+                                onChange={(e) => setEditProd((p) => ({ ...p, product_name: e.target.value }))}
                             />
                         </Col>
 
@@ -582,9 +560,7 @@ export default function Dashboard() {
                             <Form.Label className="mb-1">Category</Form.Label>
                             <Form.Select
                                 value={editProd?.category_id || ""}
-                                onChange={(e) =>
-                                    setEditProd((p) => ({ ...p, category_id: e.target.value }))
-                                }
+                                onChange={(e) => setEditProd((p) => ({ ...p, category_id: e.target.value }))}
                             >
                                 <option value="">Select…</option>
                                 {categories.map((c) => (
@@ -599,9 +575,7 @@ export default function Dashboard() {
                             <Form.Label className="mb-1">Thumbnail (MVP)</Form.Label>
                             <Form.Select
                                 value={editProd?.image_url || THUMBS[0]}
-                                onChange={(e) =>
-                                    setEditProd((p) => ({ ...p, image_url: e.target.value }))
-                                }
+                                onChange={(e) => setEditProd((p) => ({ ...p, image_url: e.target.value }))}
                             >
                                 {THUMBS.map((u) => (
                                     <option key={u} value={u}>
@@ -610,17 +584,11 @@ export default function Dashboard() {
                                 ))}
                             </Form.Select>
 
-                            <div style={{ marginTop: 10 }}>
+                            <div className="dashboard-edit-preview">
                                 <img
+                                    className="dashboard-thumb"
                                     src={editProd?.image_url || THUMBS[0]}
                                     alt="preview"
-                                    style={{
-                                        width: "100%",
-                                        maxHeight: 220,
-                                        objectFit: "cover",
-                                        borderRadius: 10,
-                                        border: "1px solid rgba(0,0,0,0.15)",
-                                    }}
                                     onError={(e) => {
                                         e.currentTarget.src = THUMBS[0];
                                     }}

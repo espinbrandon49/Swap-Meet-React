@@ -81,9 +81,12 @@ const Product = () => {
     }
   };
 
+  // -------------------------
+  // Guards
+  // -------------------------
   if (loading) {
     return (
-      <div className="container" style={{ paddingTop: 18 }}>
+      <div className="container product-page">
         Loading product...
       </div>
     );
@@ -91,8 +94,8 @@ const Product = () => {
 
   if (!product) {
     return (
-      <div className="container" style={{ paddingTop: 18 }}>
-        <h3 style={{ marginBottom: 10 }}>Product not found</h3>
+      <div className="container product-page">
+        <h3 className="product-not-found">Product not found</h3>
         <button className="form-button" onClick={() => navigate(-1)}>
           Back
         </button>
@@ -108,42 +111,47 @@ const Product = () => {
     product.owner_username ||
     "";
 
+  // -------------------------
+  // Render
+  // -------------------------
   return (
-    <div className="container" style={{ paddingTop: 18 }}>
-      <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
-        <div style={{ flex: "1 1 320px", maxWidth: 520 }}>
+    <div className="container product-page">
+      <div className="product-layout">
+        {/* Image */}
+        <div className="product-image-wrap">
           <img
+            className="product-image-lg"
             src={imgSrc}
             alt={product.product_name || "Product"}
-            style={{ width: "100%", borderRadius: 10, objectFit: "cover" }}
             onError={(e) => {
               e.currentTarget.src = "https://picsum.photos/800/600";
             }}
           />
         </div>
 
-        <div style={{ flex: "1 1 320px", minWidth: 280 }}>
-          <h2 style={{ marginTop: 0 }}>
+        {/* Details */}
+        <div className="product-details">
+          <h2 className="product-title">
             {product.product_name || "Unnamed product"}
           </h2>
 
-          <p style={{ fontSize: 18, marginTop: 8 }}>
+          <p className="product-price-lg">
             {currency.format(Number(product.price || 0))}
           </p>
 
           {seller && (
-            <p style={{ opacity: 0.85, marginTop: 6 }}>
+            <p className="product-seller">
               Sold by: <strong>{seller}</strong>
             </p>
           )}
 
           {product.description && (
-            <p style={{ marginTop: 12, whiteSpace: "pre-wrap" }}>
+            <p className="product-description-text">
               {product.description}
             </p>
           )}
 
-          <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+          <div className="product-actions">
             <button className="form-button" onClick={() => navigate(-1)}>
               Back
             </button>
@@ -159,7 +167,7 @@ const Product = () => {
           </div>
 
           {!user?.id && (
-            <div style={{ marginTop: 10, opacity: 0.8 }}>
+            <div className="product-auth-hint">
               Login to add this item to your cart.
             </div>
           )}

@@ -85,7 +85,7 @@ const Category = () => {
           <h2 className="featured-items">
             {category?.category_name || "Category"}
           </h2>
-          <div style={{ opacity: 0.8 }}>
+          <div className="category-count">
             {products.length} item{products.length === 1 ? "" : "s"}
           </div>
         </div>
@@ -119,17 +119,16 @@ const Category = () => {
                   Price: {currency.format(Number(p.price || 0))}
                 </p>
 
-                <div className="product-button">
+                <div className="product-actions-inline">
                   <Link className="link isLink" to={`/profile/${shopId}`}>
                     <span className="welcome-link">Shop</span>
                   </Link>
 
                   <button
-                    className="form-button product-button"
+                    className="form-button product-button category-cart-btn"
                     onClick={() => quickAdd(p.id)}
                     disabled={!user?.id || busyPid === p.id}
                     title={!user?.id ? "Login required" : "Quick Add"}
-                    style={{ minWidth: 52, marginLeft: 10 }}
                   >
                     {busyPid === p.id ? "..." : "🛒"}
                   </button>
@@ -141,7 +140,7 @@ const Category = () => {
       </div>
 
       {products.length === 0 && (
-        <div className="text-center" style={{ marginTop: 18, opacity: 0.85 }}>
+        <div className="text-center category-empty">
           No products found in this category.
         </div>
       )}

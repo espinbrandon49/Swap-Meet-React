@@ -117,8 +117,7 @@ const Profile = () => {
 
           {isOwner && (
             <button
-              className="form-button"
-              style={{ marginTop: 10 }}
+              className="form-button profile-manage-btn"
               onClick={() => navigate("/dashboard")}
             >
               Manage My Shop
@@ -128,7 +127,7 @@ const Profile = () => {
       </div>
 
       {categories.length === 0 && (
-        <div className="text-center" style={{ marginTop: 18, opacity: 0.85 }}>
+        <div className="text-center profile-empty">
           No categories found for this shop.
         </div>
       )}
@@ -169,21 +168,19 @@ const Profile = () => {
                       </p>
 
                       {/* Footer actions */}
-                      <div className="product-button" style={{ gap: 10 }}>
+                      <div className="product-actions-inline">
                         <button
-                          className="form-button product-button"
+                          className="form-button product-button product-view-btn"
                           onClick={() => navigate(`/product/${p.id}`)}
-                          style={{ minWidth: 90 }}
                         >
                           View
                         </button>
 
                         <button
-                          className="form-button product-button"
+                          className="form-button product-button product-cart-btn"
                           onClick={() => quickAdd(p.id)}
                           disabled={!user?.id || busyPid === p.id}
                           title={!user?.id ? "Login required" : "Quick Add"}
-                          style={{ minWidth: 52 }}
                         >
                           {busyPid === p.id ? "..." : "🛒"}
                         </button>
@@ -194,7 +191,7 @@ const Profile = () => {
               })}
 
               {products.length === 0 && (
-                <div style={{ marginTop: 10, opacity: 0.8 }}>
+                <div className="profile-empty-sub">
                   No products in this category yet.
                 </div>
               )}

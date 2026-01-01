@@ -20,7 +20,7 @@ const Registration = () => {
   };
 
   return (
-    <div className="container">
+    <div className="container login-page">
       <h2 className="featured-items">Registration</h2>
       <div className="form-elements">
         <input

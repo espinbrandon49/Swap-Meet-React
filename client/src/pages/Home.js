@@ -171,11 +171,11 @@ const Home = () => {
           displayedProducts.map((p) => (
             <Col key={p.id} xs={12} sm={6} lg={4}>
               <Card className="h-100">
-                <div style={{ height: 180, overflow: "hidden" }}>
+                <div className="home-product-img-wrap">
                   <img
+                    className="home-product-img"
                     src={p.image_url || "https://picsum.photos/400/300"}
                     alt={p.product_name || "Product"}
-                    style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     onError={(e) => {
                       e.currentTarget.src = "https://picsum.photos/400/300";
                     }}
@@ -233,9 +233,8 @@ const Home = () => {
               return (
                 <ListGroup.Item
                   key={c.id}
-                  className="border-0 p-3 category-item"
+                  className="border-0 p-3 category-item clickable"
                   onClick={() => navigate(`/category/${c.id}`)}
-                  style={{ cursor: "pointer" }}
                 >
                   <div className="d-flex justify-content-between align-items-center">
                     <span className="link category-name">

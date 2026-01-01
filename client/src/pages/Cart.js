@@ -117,7 +117,7 @@ const Cart = () => {
   // -------------------------
   if (!user?.id) {
     return (
-      <div className="container" style={{ paddingTop: 18 }}>
+      <div className="container cart-page">
         <h2>Shopping Cart</h2>
         <button className="form-button" onClick={() => navigate("/login")}>
           Login
@@ -128,7 +128,7 @@ const Cart = () => {
 
   if (loading) {
     return (
-      <div className="container" style={{ paddingTop: 18 }}>
+      <div className="container cart-page">
         Loading cart...
       </div>
     );
@@ -141,7 +141,7 @@ const Cart = () => {
   // Render
   // -------------------------
   return (
-    <div className="container">
+    <div className="container cart-page">
       <div className="cart-header">
         <h2 className="featured-items cart-subheader">Shopping Cart</h2>
       </div>
@@ -157,7 +157,11 @@ const Cart = () => {
 
             return (
               <div className="cart-product" key={p.id}>
-                <img className="cart-img" src={imgSrc} alt={p.product_name} />
+                <img
+                  className="cart-img"
+                  src={imgSrc}
+                  alt={p.product_name}
+                />
 
                 <h6 className="cart-product-name">{p.product_name}</h6>
 
@@ -165,7 +169,7 @@ const Cart = () => {
                   Price: {currency.format(Number(p.price || 0))}
                 </p>
 
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <div className="cart-qty-row">
                   <button
                     type="button"
                     className="form-button"
@@ -175,7 +179,7 @@ const Cart = () => {
                     -
                   </button>
 
-                  <div style={{ minWidth: 90, textAlign: "center" }}>
+                  <div className="cart-qty-label">
                     Qty: <strong>{qty}</strong>
                   </div>
 
@@ -189,8 +193,9 @@ const Cart = () => {
                   </button>
                 </div>
 
-                <div style={{ marginTop: 8, opacity: 0.85 }}>
-                  Line total: {currency.format(Number(p.price || 0) * qty)}
+                <div className="cart-line-total">
+                  Line total:{" "}
+                  {currency.format(Number(p.price || 0) * qty)}
                 </div>
               </div>
             );
@@ -199,20 +204,8 @@ const Cart = () => {
       )}
 
       {/* Summary + Checkout */}
-      <div
-        className="cart-summary"
-        style={{
-          marginTop: 18,
-          paddingTop: 14,
-          borderTop: "1px solid rgba(0,0,0,0.12)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          gap: 12,
-          flexWrap: "wrap",
-        }}
-      >
-        <h3 className="cart-total" style={{ margin: 0 }}>
+      <div className="cart-summary">
+        <h3 className="cart-total cart-total-heading">
           Total: {currency.format(total)}
         </h3>
 
@@ -226,17 +219,26 @@ const Cart = () => {
       </div>
 
       {/* MVP Checkout Modal */}
-      <Modal show={showCheckout} onHide={() => setShowCheckout(false)} centered>
+      <Modal
+        show={showCheckout}
+        onHide={() => setShowCheckout(false)}
+        centered
+      >
         <Modal.Header closeButton>
           <Modal.Title>Checkout</Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
-          <p style={{ marginBottom: 0 }}>Thanks for testing checkout!</p>
+          <p className="cart-checkout-msg">
+            Thanks for testing checkout!
+          </p>
         </Modal.Body>
 
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowCheckout(false)}>
+          <Button
+            variant="secondary"
+            onClick={() => setShowCheckout(false)}
+          >
             Close
           </Button>
         </Modal.Footer>

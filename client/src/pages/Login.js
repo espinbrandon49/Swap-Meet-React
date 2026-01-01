@@ -18,9 +18,9 @@ const Login = () => {
   };
 
   return (
-    <>
+    <div className="container login-page">
       <h2 className="featured-items">Sign In</h2>
-      <div className="container form-elements">
+      <div className="form-elements">
         <input
           autoComplete="off"
           className="input-field"
@@ -42,7 +42,7 @@ const Login = () => {
           Login
         </button>
       </div>
-    </>
+    </div>
   );
 };
 
