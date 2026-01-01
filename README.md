@@ -7,7 +7,11 @@ A **full‑stack marketplace MVP** built to demonstrate clean architecture, scop
 ---
 
 ## 🎥 Demo Video (Coming Soon)
-**YouTube Walkthrough:** _Coming soon_
+**YouTube Walkthrough:**
+
+[Watch the 3–5 minute demo on YouTube](https://youtu.be/DEZpYes7cY8)
+
+This video walks through the deployed Swap Meet React app, demonstrating the buyer and seller flows, key design decisions, and overall architecture.
 
 > This video will demonstrate the full user journey:
 > Home → Category → Product → Cart → Checkout (stub)
