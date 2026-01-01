@@ -3,7 +3,7 @@ import axios from "axios";
 let onUnauthorized = null;
 
 const api = axios.create({
-    baseURL: process.env.REACT_APP_API_BASE_URL,
+    baseURL: process.env.REACT_APP_API_BASE_URL || "https://swap-meet-react-api-aab9152ab59f.herokuapp.com/api",
     timeout: 10000,
     headers: { "Content-Type": "application/json" },
 });
