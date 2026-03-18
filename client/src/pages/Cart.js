@@ -63,12 +63,12 @@ const Cart = () => {
         .map((p) =>
           p.id === product_id
             ? {
-              ...p,
-              product_cart: {
-                ...(p.product_cart || {}),
-                quantity,
-              },
-            }
+                ...p,
+                product_cart: {
+                  ...(p.product_cart || {}),
+                  quantity,
+                },
+              }
             : p
         )
         .filter((p) => Number(p?.product_cart?.quantity ?? 1) > 0);
@@ -83,10 +83,8 @@ const Cart = () => {
     const prevQty =
       qtyOf(cart?.products?.find((p) => p.id === product_id)) || 1;
 
-    // clamp so UI never shows negative quantities
     const nextQty = Math.max(0, Number(quantity) || 0);
 
-    // ✅ optimistic update
     applyLocalQty(product_id, nextQty);
 
     try {
@@ -94,7 +92,6 @@ const Cart = () => {
       await api.patch("/api/cart/items", { product_id, quantity: nextQty });
       window.dispatchEvent(new CustomEvent("cart:changed"));
     } catch (err) {
-      // rollback on failure
       applyLocalQty(product_id, prevQty);
       await loadCart();
     } finally {
@@ -118,7 +115,10 @@ const Cart = () => {
     return (
       <div className="container cart-page">
         <h2>Shopping Cart</h2>
-        <button className="form-button" onClick={() => navigate("/login")}>
+        <button
+          className="btn-ui btn-primary-ui"
+          onClick={() => navigate("/login")}
+        >
           Login
         </button>
       </div>
@@ -171,7 +171,7 @@ const Cart = () => {
                 <div className="cart-qty-row">
                   <button
                     type="button"
-                    className="form-button"
+                    className="btn-ui btn-secondary-ui"
                     disabled={disabled}
                     onClick={() => setQty(p.id, qty - 1)}
                   >
@@ -184,7 +184,7 @@ const Cart = () => {
 
                   <button
                     type="button"
-                    className="form-button"
+                    className="btn-ui btn-secondary-ui"
                     disabled={disabled}
                     onClick={() => setQty(p.id, qty + 1)}
                   >
@@ -209,7 +209,7 @@ const Cart = () => {
         </h3>
 
         <Button
-          variant="primary"
+          className="btn-ui btn-primary-ui"
           disabled={isEmpty}
           onClick={() => setShowCheckout(true)}
         >
@@ -235,7 +235,7 @@ const Cart = () => {
 
         <Modal.Footer>
           <Button
-            variant="secondary"
+            className="btn-ui btn-secondary-ui"
             onClick={() => setShowCheckout(false)}
           >
             Close

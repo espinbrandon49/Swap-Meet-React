@@ -2,12 +2,10 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/client";
 
-import Card from "react-bootstrap/Card";
-import Button from "react-bootstrap/Button";
-import ListGroup from "react-bootstrap/ListGroup";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Form from "react-bootstrap/Form";
+import ListGroup from "react-bootstrap/ListGroup";
 
 const MAX_RESULTS = 6;
 
@@ -22,7 +20,6 @@ const Home = () => {
 
   const [search, setSearch] = useState("");
 
-  // ---------- Fetch ----------
   useEffect(() => {
     let mounted = true;
 
@@ -56,7 +53,6 @@ const Home = () => {
     };
   }, []);
 
-  // ---------- Derived data ----------
   const productCountByCategoryId = useMemo(() => {
     const map = new Map();
     for (const p of products) {
@@ -72,10 +68,8 @@ const Home = () => {
     return sorted.slice(0, MAX_RESULTS);
   }, [products]);
 
-  // ✅ Global search, capped display
   const displayedProducts = useMemo(() => {
     const q = search.trim().toLowerCase();
-
     if (!q) return recentProducts;
 
     return products
@@ -87,60 +81,52 @@ const Home = () => {
 
   const isSearching = search.trim().length > 0;
 
-  // ---------- UI helpers ----------
-  const onSearchSubmit = (e) => {
-    e.preventDefault();
-  };
-
+  const onSearchSubmit = (e) => e.preventDefault();
   const clearSearch = () => setSearch("");
 
   return (
     <div className="container py-3">
+
       {/* Search */}
-      <Card className="mb-4">
-        <Card.Body>
-          <Card.Title className="mb-3">Search</Card.Title>
+      <div className="card-ui mb-4">
+        <h3 className="mb-3">Search</h3>
 
-          <Form onSubmit={onSearchSubmit}>
-            <Row className="g-2 align-items-center">
-              <Col xs={12} md={9}>
-                <Form.Control
-                  type="text"
-                  placeholder="Search products"
-                  aria-label="Search products"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-              </Col>
+        <Form onSubmit={onSearchSubmit}>
+          <Row className="g-2 align-items-center">
+            <Col xs={12} md={9}>
+              <Form.Control
+                type="text"
+                placeholder="Search products"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </Col>
 
-              <Col xs={6} md={1}>
-                <Button
-                  type="button"
-                  className="w-100"
-                  variant="outline-dark"
-                  onClick={clearSearch}
-                  disabled={!isSearching}
-                  title="Clear search"
-                >
-                  ✕
-                </Button>
-              </Col>
+            <Col xs={6} md={1}>
+              <button
+                type="button"
+                className="btn-ui btn-secondary-ui w-100"
+                onClick={clearSearch}
+                disabled={!isSearching}
+              >
+                ✕
+              </button>
+            </Col>
 
-              <Col xs={6} md={2}>
-                <Button type="submit" className="w-100" variant="dark">
-                  Search
-                </Button>
-              </Col>
-            </Row>
+            <Col xs={6} md={2}>
+              <button className="btn-ui btn-primary-ui w-100">
+                Search
+              </button>
+            </Col>
+          </Row>
 
-            {isSearching && (
-              <small className="text-muted d-block mt-2">
-                Showing top {MAX_RESULTS} matches
-              </small>
-            )}
-          </Form>
-        </Card.Body>
-      </Card>
+          {isSearching && (
+            <small className="text-muted d-block mt-2">
+              Showing top {MAX_RESULTS} matches
+            </small>
+          )}
+        </Form>
+      </div>
 
       {/* Products */}
       <div className="d-flex align-items-center justify-content-between mb-2">
@@ -155,51 +141,42 @@ const Home = () => {
       <Row className="g-3 mb-4">
         {loadingProducts ? (
           <Col>
-            <Card>
-              <Card.Body>Loading products…</Card.Body>
-            </Card>
+            <div className="card-ui">Loading products…</div>
           </Col>
         ) : displayedProducts.length === 0 ? (
           <Col>
-            <Card>
-              <Card.Body>
-                No results found{isSearching ? ` for "${search.trim()}"` : ""}.
-              </Card.Body>
-            </Card>
+            <div className="card-ui">
+              No results found{isSearching ? ` for "${search.trim()}"` : ""}.
+            </div>
           </Col>
         ) : (
           displayedProducts.map((p) => (
             <Col key={p.id} xs={12} sm={6} lg={4}>
-              <Card className="h-100">
+              <div className="card-ui h-100">
                 <div className="home-product-img-wrap">
                   <img
                     className="home-product-img"
                     src={p.image_url || "https://picsum.photos/400/300"}
                     alt={p.product_name || "Product"}
-                    onError={(e) => {
-                      e.currentTarget.src = "https://picsum.photos/400/300";
-                    }}
                   />
                 </div>
-                <Card.Body className="d-flex flex-column">
-                  <Card.Title className="mb-1">
-                    {p.product_name}
-                  </Card.Title>
-                  <Card.Text className="mb-3">
-                    ${Number(p.price || 0).toFixed(2)}
-                  </Card.Text>
 
-                  <div className="mt-auto d-flex gap-2">
-                    <Button
-                      variant="outline-dark"
-                      className="w-100"
+                <div className="d-flex flex-column">
+                  <h6 className="mb-1">{p.product_name}</h6>
+                  <p className="mb-3">
+                    ${Number(p.price || 0).toFixed(2)}
+                  </p>
+
+                  <div className="mt-auto">
+                    <button
+                      className="btn-ui btn-secondary-ui w-100"
                       onClick={() => navigate(`/product/${p.id}`)}
                     >
                       View
-                    </Button>
+                    </button>
                   </div>
-                </Card.Body>
-              </Card>
+                </div>
+              </div>
             </Col>
           ))
         )}
@@ -213,7 +190,7 @@ const Home = () => {
         </small>
       </div>
 
-      <Card className="mb-4">
+      <div className="card-ui mb-4">
         <ListGroup variant="flush" className="text-center home-list">
           <ListGroup.Item className="border-0 p-3 category-item">
             VIEW BY CATEGORY
@@ -236,28 +213,18 @@ const Home = () => {
                   className="border-0 p-3 category-item clickable"
                   onClick={() => navigate(`/category/${c.id}`)}
                 >
-                  <div className="d-flex justify-content-between align-items-center">
-                    <span className="link category-name">
-                      {c.category_name}
-                    </span>
+                  <div className="d-flex justify-content-between">
+                    <span>{c.category_name}</span>
                     <span className="text-muted">
                       {count} item{count === 1 ? "" : "s"}
                     </span>
                   </div>
-
-                  {(c.username || c.owner?.username) && (
-                    <div className="mt-1">
-                      <span className="link category-user">
-                        added by {c.username ?? c.owner?.username}
-                      </span>
-                    </div>
-                  )}
                 </ListGroup.Item>
               );
             })
           )}
         </ListGroup>
-      </Card>
+      </div>
     </div>
   );
 };

@@ -104,7 +104,7 @@ This phase happens **before** UI redesign so the app has a stable deployment tar
 
 ---
 
-## Phase 2 — Backend Hardening / Cleanup Pass
+## Phase 2 FREEZE — Backend Hardening / Cleanup Pass
 
 ### Objective
 Tighten backend behavior so the monolith is cleaner and the frontend no longer has to compensate for weak response behavior.
