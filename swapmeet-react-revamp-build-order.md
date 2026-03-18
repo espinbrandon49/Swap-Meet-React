@@ -73,7 +73,7 @@ Lock the current state before new changes begin.
 
 ---
 
-## Phase 1 — Deployment Architecture Reset
+## Phase 1 FREEZE — Deployment Architecture Reset
 
 ### Objective
 Convert SwapMeet React from split deployment to a **Heroku monolith**.
