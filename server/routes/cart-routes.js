@@ -6,10 +6,15 @@ const { validateToken } = require("../middleWares/AuthMiddlewares");
 router.post("/", validateToken, async (req, res) => {
   try {
     let cart = await Cart.findOne({ where: { user_id: req.user.id } });
-    if (!cart) cart = await Cart.create({ user_id: req.user.id });
-    res.status(201).json(cart);
+
+    if (!cart) {
+      cart = await Cart.create({ user_id: req.user.id });
+      return res.status(201).json(cart);
+    }
+
+    return res.status(200).json(cart);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -27,10 +32,10 @@ router.get("/me", validateToken, async (req, res) => {
       ],
     });
 
-    if (!cart) return res.status(404).json({ message: "Cart not found" });
+    if (!cart) return res.status(404).json({ error: "Cart not found" });
     res.json(cart);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -44,7 +49,12 @@ router.post("/items", validateToken, async (req, res) => {
       return res.status(400).json({ error: "product_id must be an integer" });
     }
 
-    const addQty = Number.isFinite(qtyIn) && qtyIn > 0 ? qtyIn : 1;
+    const product = await Product.findByPk(product_id);
+    if (!product) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    const addQty = Number.isFinite(qtyIn) && qtyIn > 0 ? Math.floor(qtyIn) : 1;
 
     let cart = await Cart.findOne({ where: { user_id: req.user.id } });
     if (!cart) cart = await Cart.create({ user_id: req.user.id });
@@ -57,15 +67,21 @@ router.post("/items", validateToken, async (req, res) => {
     if (!created) {
       row.quantity = Number(row.quantity || 0) + addQty;
       await row.save();
+
+      return res.status(200).json({
+        cart_id: cart.id,
+        product_id,
+        quantity: row.quantity,
+      });
     }
 
-    res.status(201).json({
+    return res.status(201).json({
       cart_id: cart.id,
       product_id,
       quantity: row.quantity,
     });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -78,17 +94,19 @@ router.patch("/items", validateToken, async (req, res) => {
     if (!Number.isInteger(product_id)) {
       return res.status(400).json({ error: "product_id must be an integer" });
     }
+
     if (!Number.isFinite(quantity)) {
       return res.status(400).json({ error: "quantity must be a number" });
     }
 
     const cart = await Cart.findOne({ where: { user_id: req.user.id } });
-    if (!cart) return res.status(404).json({ message: "Cart not found" });
+    if (!cart) return res.status(404).json({ error: "Cart not found" });
 
     const row = await ProductCart.findOne({
       where: { cart_id: cart.id, product_id },
     });
-    if (!row) return res.status(404).json({ message: "Item not found" });
+
+    if (!row) return res.status(404).json({ error: "Item not found" });
 
     if (quantity <= 0) {
       await row.destroy();
@@ -96,6 +114,7 @@ router.patch("/items", validateToken, async (req, res) => {
     }
 
     row.quantity = Math.floor(quantity);
+
     if (row.quantity < 1) {
       await row.destroy();
       return res.status(204).end();
@@ -104,7 +123,7 @@ router.patch("/items", validateToken, async (req, res) => {
     await row.save();
     res.json({ cart_id: cart.id, product_id, quantity: row.quantity });
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -113,13 +132,25 @@ router.delete("/items", validateToken, async (req, res) => {
   try {
     const product_id = Number(req.body.product_id);
 
-    const cart = await Cart.findOne({ where: { user_id: req.user.id } });
-    if (!cart) return res.status(404).json({ message: "Cart not found" });
+    if (!Number.isInteger(product_id)) {
+      return res.status(400).json({ error: "product_id must be an integer" });
+    }
 
-    await cart.removeProduct(product_id);
+    const cart = await Cart.findOne({ where: { user_id: req.user.id } });
+    if (!cart) return res.status(404).json({ error: "Cart not found" });
+
+    const row = await ProductCart.findOne({
+      where: { cart_id: cart.id, product_id },
+    });
+
+    if (!row) {
+      return res.status(404).json({ error: "Item not found" });
+    }
+
+    await row.destroy();
     res.status(204).end();
   } catch (err) {
-    res.status(400).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 

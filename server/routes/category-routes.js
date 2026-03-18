@@ -9,7 +9,7 @@ router.get("/", async (req, res) => {
       include: [
         {
           model: User,
-          as: "owner", 
+          as: "owner",
           attributes: ["id", "username"],
         },
         {
@@ -21,7 +21,7 @@ router.get("/", async (req, res) => {
 
     res.json(categories);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
@@ -43,21 +43,43 @@ router.get("/:id", async (req, res) => {
       ],
     });
 
-    if (!category) return res.status(404).json({ message: "Not found" });
+    if (!category) return res.status(404).json({ error: "Not found" });
     res.json(category);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
 // CREATE a category → OWNER ONLY
 router.post("/", validateToken, async (req, res) => {
   try {
+    const category_name = (req.body.category_name || "").trim();
+
+    if (!category_name) {
+      return res.status(400).json({ error: "category_name is required" });
+    }
+
     const category = await Category.create({
-      category_name: req.body.category_name,
+      category_name,
       user_id: req.user.id,
     });
-    res.status(201).json(category);
+
+    const created = await Category.findOne({
+      where: { id: category.id },
+      include: [
+        {
+          model: User,
+          as: "owner",
+          attributes: ["id", "username"],
+        },
+        {
+          model: Product,
+          as: "products",
+        },
+      ],
+    });
+
+    res.status(201).json(created);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -66,12 +88,40 @@ router.post("/", validateToken, async (req, res) => {
 // UPDATE a category → OWNER ONLY
 router.put("/:id", validateToken, async (req, res) => {
   try {
-    const [updated] = await Category.update(
-      { category_name: req.body.category_name },
-      { where: { id: req.params.id, user_id: req.user.id } }
-    );
-    if (!updated) return res.status(404).json({ message: "Not found" });
-    res.json({ id: req.params.id });
+    const category = await Category.findByPk(req.params.id);
+
+    if (!category) {
+      return res.status(404).json({ error: "Not found" });
+    }
+
+    if (category.user_id !== req.user.id) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const category_name = (req.body.category_name || "").trim();
+
+    if (!category_name) {
+      return res.status(400).json({ error: "category_name is required" });
+    }
+
+    await category.update({ category_name });
+
+    const updated = await Category.findOne({
+      where: { id: category.id },
+      include: [
+        {
+          model: User,
+          as: "owner",
+          attributes: ["id", "username"],
+        },
+        {
+          model: Product,
+          as: "products",
+        },
+      ],
+    });
+
+    res.json(updated);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -80,12 +130,40 @@ router.put("/:id", validateToken, async (req, res) => {
 // PATCH a category → OWNER ONLY (alias for PUT)
 router.patch("/:id", validateToken, async (req, res) => {
   try {
-    const [updated] = await Category.update(
-      { category_name: req.body.category_name },
-      { where: { id: req.params.id, user_id: req.user.id } }
-    );
-    if (!updated) return res.status(404).json({ message: "Not found" });
-    res.json({ id: req.params.id });
+    const category = await Category.findByPk(req.params.id);
+
+    if (!category) {
+      return res.status(404).json({ error: "Not found" });
+    }
+
+    if (category.user_id !== req.user.id) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    const category_name = (req.body.category_name || "").trim();
+
+    if (!category_name) {
+      return res.status(400).json({ error: "category_name is required" });
+    }
+
+    await category.update({ category_name });
+
+    const updated = await Category.findOne({
+      where: { id: category.id },
+      include: [
+        {
+          model: User,
+          as: "owner",
+          attributes: ["id", "username"],
+        },
+        {
+          model: Product,
+          as: "products",
+        },
+      ],
+    });
+
+    res.json(updated);
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -94,13 +172,20 @@ router.patch("/:id", validateToken, async (req, res) => {
 // DELETE a category → OWNER ONLY
 router.delete("/:id", validateToken, async (req, res) => {
   try {
-    const deleted = await Category.destroy({
-      where: { id: req.params.id, user_id: req.user.id },
-    });
-    if (!deleted) return res.status(404).json({ message: "Not found" });
+    const category = await Category.findByPk(req.params.id);
+
+    if (!category) {
+      return res.status(404).json({ error: "Not found" });
+    }
+
+    if (category.user_id !== req.user.id) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    await category.destroy();
     res.status(204).end();
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Internal server error" });
   }
 });
 
