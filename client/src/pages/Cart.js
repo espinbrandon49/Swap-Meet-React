@@ -1,10 +1,9 @@
+// src/pages/Cart.js
 import React, { useContext, useEffect, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Button from "react-bootstrap/Button";
+import { Link, useNavigate } from "react-router-dom";
 import Modal from "react-bootstrap/Modal";
 import api from "../api/client";
 import { AuthContext } from "../helpers/AuthContext";
-import PageHeader from "../components/PageHeader";
 import EmptyState from "../components/EmptyState";
 import LoadingState from "../components/LoadingState";
 import CartItem from "../components/CartItem";
@@ -27,7 +26,36 @@ const Cart = () => {
     []
   );
 
-  const qtyOf = (p) => Number(p?.product_cart?.quantity ?? 1);
+  const qtyOf = (product) => Number(product?.product_cart?.quantity ?? 1);
+
+  const products = useMemo(() => {
+    return Array.isArray(cart?.products) ? cart.products : [];
+  }, [cart]);
+
+  const itemCount = useMemo(() => {
+    return products.reduce((sum, product) => sum + qtyOf(product), 0);
+  }, [products]);
+
+  const subtotal = useMemo(() => {
+    return products.reduce(
+      (sum, product) => sum + Number(product.price || 0) * qtyOf(product),
+      0
+    );
+  }, [products]);
+
+  const distinctSellerCount = useMemo(() => {
+    const sellerIds = new Set(
+      products.map(
+        (product) =>
+          product?.owner?.id ??
+          product?.user_id ??
+          product?.owner_id ??
+          product?.category?.owner?.id
+      )
+    );
+
+    return Array.from(sellerIds).filter(Boolean).length;
+  }, [products]);
 
   const loadCart = async () => {
     try {
@@ -51,44 +79,50 @@ const Cart = () => {
     loadCart();
   }, [user?.id]);
 
-  const applyLocalQty = (product_id, quantity) => {
+  const applyLocalQty = (productId, quantity) => {
     setCart((prev) => {
-      const products = Array.isArray(prev?.products) ? prev.products : [];
+      const prevProducts = Array.isArray(prev?.products) ? prev.products : [];
 
-      const nextProducts = products
-        .map((p) =>
-          p.id === product_id
+      const nextProducts = prevProducts
+        .map((product) =>
+          product.id === productId
             ? {
-                ...p,
+                ...product,
                 product_cart: {
-                  ...(p.product_cart || {}),
+                  ...(product.product_cart || {}),
                   quantity,
                 },
               }
-            : p
+            : product
         )
-        .filter((p) => Number(p?.product_cart?.quantity ?? 1) > 0);
+        .filter((product) => Number(product?.product_cart?.quantity ?? 1) > 0);
 
-      return { ...prev, products: nextProducts };
+      return {
+        ...prev,
+        products: nextProducts,
+      };
     });
   };
 
-  const setQty = async (product_id, quantity) => {
+  const setQty = async (productId, quantity) => {
     const scrollY = window.scrollY;
 
     const prevQty =
-      qtyOf(cart?.products?.find((p) => p.id === product_id)) || 1;
+      qtyOf(products.find((product) => product.id === productId)) || 1;
 
     const nextQty = Math.max(0, Number(quantity) || 0);
 
-    applyLocalQty(product_id, nextQty);
+    applyLocalQty(productId, nextQty);
 
     try {
-      setBusyPid(product_id);
-      await api.patch("/api/cart/items", { product_id, quantity: nextQty });
+      setBusyPid(productId);
+      await api.patch("/api/cart/items", {
+        product_id: productId,
+        quantity: nextQty,
+      });
       window.dispatchEvent(new CustomEvent("cart:changed"));
     } catch (err) {
-      applyLocalQty(product_id, prevQty);
+      applyLocalQty(productId, prevQty);
       await loadCart();
     } finally {
       setBusyPid(null);
@@ -96,26 +130,19 @@ const Cart = () => {
     }
   };
 
-  const total = useMemo(() => {
-    const items = Array.isArray(cart?.products) ? cart.products : [];
-    return items.reduce(
-      (sum, p) => sum + Number(p.price || 0) * qtyOf(p),
-      0
-    );
-  }, [cart]);
-
   if (!user?.id) {
     return (
-      <div className="container cart-page">
+      <div className="container" style={{ maxWidth: "920px" }}>
         <EmptyState
-          title="Shopping Cart"
-          message="Login required to view your cart."
+          title="Cart access requires login"
+          message="Sign in to review saved items, adjust quantities, and continue through the buyer flow."
           action={
             <button
+              type="button"
               className="btn-ui btn-primary-ui"
               onClick={() => navigate("/login")}
             >
-              Login
+              Go to Login
             </button>
           }
         />
@@ -125,87 +152,350 @@ const Cart = () => {
 
   if (loading) {
     return (
-      <div className="container cart-page">
+      <div className="container" style={{ maxWidth: "1200px" }}>
         <LoadingState
           title="Loading cart..."
-          message="Pulling your selected items and totals."
+          message="Pulling your selected items, quantities, and totals."
         />
       </div>
     );
   }
 
-  const products = Array.isArray(cart?.products) ? cart.products : [];
   const isEmpty = products.length === 0;
-  const itemCount = products.reduce((sum, p) => sum + qtyOf(p), 0);
 
   return (
-    <div className="container cart-page">
-      <PageHeader
-        title="Shopping Cart"
-        subtitle="Review your selected items before checkout."
-        meta={`${itemCount} item${itemCount === 1 ? "" : "s"}`}
-      />
+    <div className="container" style={{ maxWidth: "1200px" }}>
+      <div style={{ display: "grid", gap: "24px" }}>
+        <section className="card-ui" style={{ padding: "28px" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              gap: "20px",
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ display: "grid", gap: "10px" }}>
+              <div>
+                <small style={{ display: "block", marginBottom: "6px" }}>
+                  Buyer flow
+                </small>
+                <h1 style={{ margin: 0 }}>Shopping Cart</h1>
+              </div>
 
-      {isEmpty ? (
-        <EmptyState
-          title="Shopping Cart Empty"
-          message="Add items from category or product pages to see them here."
-        />
-      ) : (
-        <div className="product-wrapper product-wrapper-cart">
-          {products.map((p) => (
-            <CartItem
-              key={p.id}
-              product={p}
-              qty={qtyOf(p)}
-              disabled={busyPid === p.id}
-              onChangeQty={setQty}
-              currency={currency}
-            />
-          ))}
-        </div>
-      )}
+              <p
+                className="text-muted"
+                style={{
+                  margin: 0,
+                  maxWidth: "760px",
+                }}
+              >
+                Review your selected items, adjust quantities, and confirm the
+                cart before checkout. This page is meant to make the purchase
+                flow clearer and easier to scan.
+              </p>
 
-      <div className="cart-summary">
-        <h3 className="cart-total cart-total-heading">
-          Total: {currency.format(total)}
-        </h3>
+              <div
+                style={{
+                  display: "flex",
+                  gap: "10px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <Link to="/" className="btn-ui btn-secondary-ui">
+                  Continue Shopping
+                </Link>
 
-        <Button
-          className="btn-ui btn-primary-ui"
-          disabled={isEmpty}
-          onClick={() => setShowCheckout(true)}
-        >
-          Checkout
-        </Button>
+                {!isEmpty ? (
+                  <button
+                    type="button"
+                    className="btn-ui btn-primary-ui"
+                    onClick={() => setShowCheckout(true)}
+                  >
+                    Proceed to Checkout
+                  </button>
+                ) : null}
+              </div>
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, minmax(130px, 1fr))",
+                gap: "12px",
+                minWidth: "320px",
+                flex: "1 1 320px",
+              }}
+            >
+              <CartStatCard label="Items" value={itemCount} />
+              <CartStatCard label="Sellers" value={distinctSellerCount} />
+              <CartStatCard
+                label="Subtotal"
+                value={currency.format(subtotal)}
+                compactText={true}
+              />
+            </div>
+          </div>
+        </section>
+
+        {isEmpty ? (
+          <EmptyState
+            title="Your cart is empty"
+            message="Add items from category or product pages to see them here."
+            action={
+              <Link to="/" className="btn-ui btn-primary-ui">
+                Browse Marketplace
+              </Link>
+            }
+          />
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(0, 1fr) minmax(300px, 360px)",
+              gap: "24px",
+              alignItems: "start",
+            }}
+          >
+            <section
+              className="card-ui"
+              style={{
+                display: "grid",
+                gap: "18px",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  gap: "16px",
+                  flexWrap: "wrap",
+                }}
+              >
+                <div>
+                  <small style={{ display: "block", marginBottom: "4px" }}>
+                    Cart items
+                  </small>
+                  <h2 style={{ margin: 0, fontSize: "26px" }}>
+                    Selected products
+                  </h2>
+                </div>
+
+                <div className="text-muted">
+                  Adjust quantity directly from this page.
+                </div>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gap: "16px",
+                }}
+              >
+                {products.map((product) => (
+                  <CartItem
+                    key={product.id}
+                    product={product}
+                    qty={qtyOf(product)}
+                    disabled={busyPid === product.id}
+                    onChangeQty={setQty}
+                    currency={currency}
+                  />
+                ))}
+              </div>
+            </section>
+
+            <aside
+              className="card-ui"
+              style={{
+                display: "grid",
+                gap: "18px",
+                position: "sticky",
+                top: "104px",
+              }}
+            >
+              <div>
+                <small style={{ display: "block", marginBottom: "6px" }}>
+                  Order summary
+                </small>
+                <h2 style={{ margin: 0, fontSize: "24px" }}>Checkout panel</h2>
+              </div>
+
+              <div
+                style={{
+                  border: "1px solid #e4dccf",
+                  borderRadius: "16px",
+                  background: "#fcfaf6",
+                  padding: "18px",
+                  display: "grid",
+                  gap: "14px",
+                }}
+              >
+                <SummaryRow label="Items" value={itemCount} />
+                <SummaryRow label="Distinct products" value={products.length} />
+                <SummaryRow label="Subtotal" value={currency.format(subtotal)} />
+
+                <div
+                  style={{
+                    height: "1px",
+                    background: "#e4dccf",
+                  }}
+                />
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    gap: "12px",
+                    alignItems: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      fontSize: "14px",
+                      color: "#6b645b",
+                    }}
+                  >
+                    Total
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "28px",
+                      fontWeight: 700,
+                      color: "#1f1f1f",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {currency.format(subtotal)}
+                  </div>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                className="btn-ui btn-primary-ui"
+                onClick={() => setShowCheckout(true)}
+                disabled={isEmpty}
+              >
+                Checkout
+              </button>
+
+              <p
+                className="text-muted"
+                style={{
+                  margin: 0,
+                  fontSize: "14px",
+                  lineHeight: 1.6,
+                }}
+              >
+                This portfolio build uses a mock checkout confirmation rather
+                than a live payment flow.
+              </p>
+            </aside>
+          </div>
+        )}
       </div>
 
-      <Modal
-        show={showCheckout}
-        onHide={() => setShowCheckout(false)}
-        centered
-      >
+      <Modal show={showCheckout} onHide={() => setShowCheckout(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Checkout</Modal.Title>
         </Modal.Header>
 
         <Modal.Body>
-          <p className="cart-checkout-msg">
-            Thanks for testing checkout!
-          </p>
+          <div style={{ display: "grid", gap: "10px" }}>
+            <p style={{ margin: 0 }}>
+              Thanks for testing the buyer flow.
+            </p>
+            <p className="text-muted" style={{ margin: 0 }}>
+              This checkout step is intentionally mocked for portfolio demo
+              purposes.
+            </p>
+            <div
+              style={{
+                border: "1px solid #e4dccf",
+                borderRadius: "14px",
+                padding: "14px",
+                background: "#fcfaf6",
+              }}
+            >
+              <strong>Total:</strong> {currency.format(subtotal)}
+            </div>
+          </div>
         </Modal.Body>
 
         <Modal.Footer>
-          <Button
+          <button
+            type="button"
             className="btn-ui btn-secondary-ui"
             onClick={() => setShowCheckout(false)}
           >
             Close
-          </Button>
+          </button>
         </Modal.Footer>
       </Modal>
     </div>
   );
 };
+
+function CartStatCard({ label, value, compactText = false }) {
+  return (
+    <div className="card-ui" style={{ padding: "18px 20px" }}>
+      <div
+        style={{
+          fontSize: "13px",
+          color: "#6b645b",
+          marginBottom: "8px",
+        }}
+      >
+        {label}
+      </div>
+
+      <div
+        style={{
+          fontSize: compactText ? "22px" : "30px",
+          fontWeight: 700,
+          color: "#1f1f1f",
+          lineHeight: 1.1,
+          wordBreak: "break-word",
+        }}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
+
+function SummaryRow({ label, value }) {
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        gap: "12px",
+        alignItems: "center",
+      }}
+    >
+      <div
+        style={{
+          fontSize: "14px",
+          color: "#6b645b",
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontSize: "15px",
+          fontWeight: 600,
+          color: "#1f1f1f",
+        }}
+      >
+        {value}
+      </div>
+    </div>
+  );
+}
 
 export default Cart;

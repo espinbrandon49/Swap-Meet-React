@@ -1,16 +1,11 @@
+// src/pages/Dashboard.js
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import Modal from "react-bootstrap/Modal";
 import api from "../api/client";
 import { AuthContext } from "../helpers/AuthContext";
-
-import Card from "react-bootstrap/Card";
-import Button from "react-bootstrap/Button";
-import Form from "react-bootstrap/Form";
-import Modal from "react-bootstrap/Modal";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
-import ListGroup from "react-bootstrap/ListGroup";
 import LoadingState from "../components/LoadingState";
+import EmptyState from "../components/EmptyState";
 
 export default function Dashboard() {
   const { user } = useContext(AuthContext);
@@ -34,22 +29,56 @@ export default function Dashboard() {
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
 
+  const [newCatName, setNewCatName] = useState("");
+
+  const [showEditCat, setShowEditCat] = useState(false);
+  const [editCatId, setEditCatId] = useState(null);
+  const [editCatName, setEditCatName] = useState("");
+
+  const [newProd, setNewProd] = useState({
+    product_name: "",
+    price: "",
+    stock: "",
+    category_id: "",
+    image_url: THUMBS[0],
+  });
+
+  const [showEditProd, setShowEditProd] = useState(false);
+  const [editProd, setEditProd] = useState(null);
+
+  const currency = useMemo(
+    () =>
+      new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency: "USD",
+      }),
+    []
+  );
+
   const reload = async () => {
     if (!user?.id) return;
 
     setLoading(true);
+
     try {
       const res = await api.get("/api/categories");
       const all = Array.isArray(res.data) ? res.data : [];
 
-      const mine = all.filter((c) => String(c.user_id) === String(user.id));
+      const mine = all.filter((c) => {
+        const ownerId = c.user_id ?? c.owner?.id ?? c.owner_id;
+        return String(ownerId) === String(user.id);
+      });
+
       setCategories(mine);
 
       const flat = [];
       for (const c of mine) {
         const ps = Array.isArray(c.products) ? c.products : [];
-        for (const p of ps) flat.push({ ...p, _category: c });
+        for (const p of ps) {
+          flat.push({ ...p, _category: c });
+        }
       }
+
       setProducts(flat);
     } catch (err) {
       console.error("Dashboard load failed:", err);
@@ -66,12 +95,6 @@ export default function Dashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
-  const [newCatName, setNewCatName] = useState("");
-
-  const [showEditCat, setShowEditCat] = useState(false);
-  const [editCatId, setEditCatId] = useState(null);
-  const [editCatName, setEditCatName] = useState("");
-
   const openEditCategory = (cat) => {
     setEditCatId(cat.id);
     setEditCatName(cat.category_name || "");
@@ -80,7 +103,7 @@ export default function Dashboard() {
 
   const addCategory = async () => {
     const name = (newCatName || "").trim();
-    if (!name) return;
+    if (!name) return alert("Category name is required");
 
     try {
       await api.post("/api/categories", { category_name: name });
@@ -93,7 +116,7 @@ export default function Dashboard() {
 
   const saveCategory = async () => {
     const name = (editCatName || "").trim();
-    if (!editCatId || !name) return;
+    if (!editCatId || !name) return alert("Category name is required");
 
     try {
       await api.patch(`/api/categories/${editCatId}`, { category_name: name });
@@ -108,8 +131,9 @@ export default function Dashboard() {
 
   const deleteCategory = async (catId) => {
     if (!catId) return;
+
     const ok = window.confirm(
-      "Delete this category? (Products in it may also be removed depending on your DB cascade.)"
+      "Delete this category? Products inside it may also be removed depending on your database cascade."
     );
     if (!ok) return;
 
@@ -120,17 +144,6 @@ export default function Dashboard() {
       alert(err?.response?.data?.error || "Failed to delete category");
     }
   };
-
-  const [newProd, setNewProd] = useState({
-    product_name: "",
-    price: "",
-    stock: "",
-    category_id: "",
-    image_url: THUMBS[0],
-  });
-
-  const [showEditProd, setShowEditProd] = useState(false);
-  const [editProd, setEditProd] = useState(null);
 
   const openEditProduct = (p) => {
     setEditProd({
@@ -213,370 +226,837 @@ export default function Dashboard() {
 
   if (!user?.id) {
     return (
-      <div className="container dashboard-page">
-        <h2>Dashboard</h2>
-        <p>Login required.</p>
-        <Button variant="dark" onClick={() => navigate("/login")}>
-          Login
-        </Button>
+      <div className="container" style={{ maxWidth: "900px" }}>
+        <div
+          className="card-ui"
+          style={{
+            display: "grid",
+            gap: "12px",
+          }}
+        >
+          <small>Seller access</small>
+          <h1 style={{ margin: 0 }}>Dashboard</h1>
+          <p className="text-muted" style={{ margin: 0 }}>
+            You need to be signed in to manage categories and products.
+          </p>
+          <div>
+            <button
+              type="button"
+              className="btn-ui btn-primary-ui"
+              onClick={() => navigate("/login")}
+            >
+              Go to Login
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
+  const totalStock = products.reduce((sum, p) => sum + Number(p?.stock ?? 0), 0);
+
   return (
-    <div className="container dashboard-page">
-      <div className="dashboard-breadcrumb">
-        <Link className="link" to={`/profile/${user.id}`}>
-          ← Back to My Shop
-        </Link>
-        <span className="dashboard-sep">|</span>
-        <span className="dashboard-crumb">Owner Dashboard</span>
-      </div>
+    <div className="container" style={{ maxWidth: "1200px" }}>
+      <div
+        style={{
+          display: "grid",
+          gap: "24px",
+        }}
+      >
+        <section className="card-ui" style={{ padding: "28px" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              gap: "20px",
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ display: "grid", gap: "10px" }}>
+              <Link
+                to={`/profile/${user.id}`}
+                style={{
+                  textDecoration: "none",
+                  fontWeight: 600,
+                  color: "#7c5c3b",
+                }}
+              >
+                ← Back to My Shop
+              </Link>
 
-      <h2 className="dashboard-title">Dashboard</h2>
-      <p className="dashboard-subtitle">
-        Manage your categories and products. (MVP thumbnails use a static dropdown.)
-      </p>
+              <div>
+                <small style={{ display: "block", marginBottom: "6px" }}>
+                  Owner workspace
+                </small>
+                <h1 style={{ margin: 0 }}>Dashboard</h1>
+              </div>
 
-      {loading ? (
-        <LoadingState
-          title="Loading dashboard..."
-          message="Pulling your categories, products, and shop data."
-        />
-      ) : (
-        <Row className="g-3">
-          <Col xs={12} lg={5}>
-            <Card>
-              <Card.Body>
-                <Card.Title className="mb-3">Categories</Card.Title>
+              <p
+                className="text-muted"
+                style={{
+                  margin: 0,
+                  maxWidth: "760px",
+                }}
+              >
+                Manage your storefront structure from one place. Create categories,
+                add products, and keep your shop organized without bouncing between screens.
+              </p>
+            </div>
 
-                <Form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    addCategory();
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, minmax(120px, 1fr))",
+                gap: "12px",
+                minWidth: "320px",
+                flex: "1 1 320px",
+              }}
+            >
+              <StatCard label="Categories" value={categories.length} />
+              <StatCard label="Products" value={products.length} />
+              <StatCard label="Units in Stock" value={totalStock} />
+            </div>
+          </div>
+        </section>
+
+        {loading ? (
+          <LoadingState
+            title="Loading dashboard..."
+            message="Pulling your categories, products, and shop data."
+          />
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "minmax(320px, 380px) minmax(0, 1fr)",
+              gap: "24px",
+              alignItems: "start",
+            }}
+          >
+            <section
+              className="card-ui"
+              style={{
+                display: "grid",
+                gap: "20px",
+              }}
+            >
+              <div>
+                <small style={{ display: "block", marginBottom: "6px" }}>
+                  Structure
+                </small>
+                <h2 style={{ margin: 0, fontSize: "24px" }}>Categories</h2>
+              </div>
+
+              <div
+                style={{
+                  display: "grid",
+                  gap: "10px",
+                }}
+              >
+                <label
+                  htmlFor="new-category-name"
+                  style={{ fontWeight: 600, fontSize: "14px" }}
+                >
+                  Add a category
+                </label>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1fr auto",
+                    gap: "10px",
                   }}
                 >
-                  <Row className="g-2 align-items-center">
-                    <Col xs={8}>
-                      <Form.Control
-                        value={newCatName}
-                        onChange={(e) => setNewCatName(e.target.value)}
-                        placeholder="New category name"
-                      />
-                    </Col>
-                    <Col xs={4}>
-                      <Button className="w-100" variant="dark" type="submit">
-                        Add
-                      </Button>
-                    </Col>
-                  </Row>
-                </Form>
+                  <input
+                    id="new-category-name"
+                    type="text"
+                    className="form-input"
+                    value={newCatName}
+                    onChange={(e) => setNewCatName(e.target.value)}
+                    placeholder="Example: Vintage Jackets"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") addCategory();
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="btn-ui btn-primary-ui"
+                    onClick={addCategory}
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
 
-                <div className="dashboard-top-spacer">
-                  {categories.length === 0 ? (
-                    <div className="dashboard-empty">No categories yet.</div>
-                  ) : (
-                    <ListGroup>
-                      {categories.map((c) => (
-                        <ListGroup.Item
-                          key={c.id}
-                          className="d-flex align-items-center justify-content-between"
+              {categories.length === 0 ? (
+                <EmptyState
+                  title="No categories yet"
+                  message="Create your first category to start structuring your shop."
+                />
+              ) : (
+                <div
+                  style={{
+                    display: "grid",
+                    gap: "12px",
+                  }}
+                >
+                  {categories.map((c) => {
+                    const categoryProducts = Array.isArray(c.products) ? c.products : [];
+
+                    return (
+                      <div
+                        key={c.id}
+                        style={{
+                          border: "1px solid #e4dccf",
+                          borderRadius: "14px",
+                          padding: "16px",
+                          background: "#fcfaf6",
+                          display: "grid",
+                          gap: "12px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            gap: "12px",
+                            alignItems: "flex-start",
+                            flexWrap: "wrap",
+                          }}
                         >
                           <div>
-                            <div className="dashboard-strong">{c.category_name}</div>
-                            <div className="dashboard-cat-meta">
-                              {Array.isArray(c.products) ? c.products.length : 0} product
-                              {Array.isArray(c.products) && c.products.length === 1 ? "" : "s"}
+                            <div
+                              style={{
+                                fontWeight: 700,
+                                fontSize: "16px",
+                                color: "#1f1f1f",
+                              }}
+                            >
+                              {c.category_name}
+                            </div>
+                            <div
+                              style={{
+                                fontSize: "14px",
+                                color: "#6b645b",
+                                marginTop: "4px",
+                              }}
+                            >
+                              {categoryProducts.length} product
+                              {categoryProducts.length === 1 ? "" : "s"}
                             </div>
                           </div>
 
-                          <div className="dashboard-actions">
-                            <Button
-                              size="sm"
-                              variant="outline-dark"
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "8px",
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            <button
+                              type="button"
+                              className="btn-ui btn-secondary-ui"
                               onClick={() => openEditCategory(c)}
                             >
                               Edit
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline-danger"
+                            </button>
+                            <button
+                              type="button"
+                              className="btn-ui btn-secondary-ui"
                               onClick={() => deleteCategory(c.id)}
                             >
                               Delete
-                            </Button>
+                            </button>
                           </div>
-                        </ListGroup.Item>
-                      ))}
-                    </ListGroup>
-                  )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              </Card.Body>
-            </Card>
-          </Col>
+              )}
+            </section>
 
-          <Col xs={12} lg={7}>
-            <Card>
-              <Card.Body>
-                <Card.Title className="mb-3">Products</Card.Title>
+            <section
+              className="card-ui"
+              style={{
+                display: "grid",
+                gap: "22px",
+              }}
+            >
+              <div>
+                <small style={{ display: "block", marginBottom: "6px" }}>
+                  Inventory
+                </small>
+                <h2 style={{ margin: 0, fontSize: "24px" }}>Products</h2>
+              </div>
 
-                <Card className="mb-3">
-                  <Card.Body>
-                    <Form
-                      onSubmit={(e) => {
-                        e.preventDefault();
-                        addProduct();
+              <div
+                style={{
+                  border: "1px solid #e4dccf",
+                  borderRadius: "16px",
+                  padding: "18px",
+                  background: "#fcfaf6",
+                  display: "grid",
+                  gap: "14px",
+                }}
+              >
+                <div>
+                  <h3 style={{ margin: 0, fontSize: "18px" }}>Add a product</h3>
+                  <p
+                    className="text-muted"
+                    style={{ marginTop: "6px", marginBottom: 0 }}
+                  >
+                    MVP note: product images are selected from a static thumbnail list.
+                  </p>
+                </div>
+
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
+                    gap: "12px",
+                  }}
+                >
+                  <div style={{ gridColumn: "span 6" }}>
+                    <label
+                      htmlFor="new-product-name"
+                      style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
+                    >
+                      Product name
+                    </label>
+                    <input
+                      id="new-product-name"
+                      type="text"
+                      className="form-input"
+                      value={newProd.product_name}
+                      onChange={(e) =>
+                        setNewProd((prev) => ({
+                          ...prev,
+                          product_name: e.target.value,
+                        }))
+                      }
+                      placeholder="Example: Denim Jacket"
+                    />
+                  </div>
+
+                  <div style={{ gridColumn: "span 3" }}>
+                    <label
+                      htmlFor="new-product-price"
+                      style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
+                    >
+                      Price
+                    </label>
+                    <input
+                      id="new-product-price"
+                      type="text"
+                      className="form-input"
+                      value={newProd.price}
+                      onChange={(e) =>
+                        setNewProd((prev) => ({
+                          ...prev,
+                          price: e.target.value,
+                        }))
+                      }
+                      placeholder="24.99"
+                    />
+                  </div>
+
+                  <div style={{ gridColumn: "span 3" }}>
+                    <label
+                      htmlFor="new-product-stock"
+                      style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
+                    >
+                      Stock
+                    </label>
+                    <input
+                      id="new-product-stock"
+                      type="text"
+                      className="form-input"
+                      value={newProd.stock}
+                      onChange={(e) =>
+                        setNewProd((prev) => ({
+                          ...prev,
+                          stock: e.target.value,
+                        }))
+                      }
+                      placeholder="10"
+                    />
+                  </div>
+
+                  <div style={{ gridColumn: "span 6" }}>
+                    <label
+                      htmlFor="new-product-category"
+                      style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
+                    >
+                      Category
+                    </label>
+                    <select
+                      id="new-product-category"
+                      className="form-input"
+                      value={newProd.category_id}
+                      onChange={(e) =>
+                        setNewProd((prev) => ({
+                          ...prev,
+                          category_id: e.target.value,
+                        }))
+                      }
+                    >
+                      <option value="">Select a category</option>
+                      {categories.map((c) => (
+                        <option key={c.id} value={c.id}>
+                          {c.category_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div style={{ gridColumn: "span 6" }}>
+                    <label
+                      htmlFor="new-product-thumb"
+                      style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
+                    >
+                      Thumbnail
+                    </label>
+                    <select
+                      id="new-product-thumb"
+                      className="form-input"
+                      value={newProd.image_url}
+                      onChange={(e) =>
+                        setNewProd((prev) => ({
+                          ...prev,
+                          image_url: e.target.value,
+                        }))
+                      }
+                    >
+                      {THUMBS.map((thumb) => (
+                        <option key={thumb} value={thumb}>
+                          {thumb}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: "16px",
+                    flexWrap: "wrap",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "12px",
+                    }}
+                  >
+                    <img
+                      src={newProd.image_url || THUMBS[0]}
+                      alt="Preview"
+                      style={{
+                        width: "72px",
+                        height: "72px",
+                        objectFit: "cover",
+                        borderRadius: "12px",
+                        border: "1px solid #ddd4c7",
+                      }}
+                      onError={(e) => {
+                        e.currentTarget.src = THUMBS[0];
+                      }}
+                    />
+                    <div style={{ fontSize: "14px", color: "#6b645b" }}>
+                      Preview image for the new product.
+                    </div>
+                  </div>
+
+                  <button
+                    type="button"
+                    className="btn-ui btn-primary-ui"
+                    onClick={addProduct}
+                  >
+                    Add Product
+                  </button>
+                </div>
+              </div>
+
+              {products.length === 0 ? (
+                <EmptyState
+                  title="No products yet"
+                  message="Once you add products, they will appear here with category, price, and stock details."
+                />
+              ) : (
+                <div
+                  style={{
+                    display: "grid",
+                    gap: "14px",
+                  }}
+                >
+                  {products.map((p) => (
+                    <div
+                      key={p.id}
+                      style={{
+                        border: "1px solid #e4dccf",
+                        borderRadius: "16px",
+                        padding: "16px",
+                        background: "#ffffff",
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        gap: "16px",
+                        flexWrap: "wrap",
                       }}
                     >
-                      <Row className="g-2">
-                        <Col xs={12} md={6}>
-                          <Form.Label className="mb-1">Name</Form.Label>
-                          <Form.Control
-                            value={newProd.product_name}
-                            onChange={(e) =>
-                              setNewProd((p) => ({ ...p, product_name: e.target.value }))
-                            }
-                            placeholder="Product name"
-                          />
-                        </Col>
-
-                        <Col xs={6} md={3}>
-                          <Form.Label className="mb-1">Price</Form.Label>
-                          <Form.Control
-                            value={newProd.price}
-                            onChange={(e) => setNewProd((p) => ({ ...p, price: e.target.value }))}
-                            placeholder="14.99"
-                          />
-                        </Col>
-
-                        <Col xs={6} md={3}>
-                          <Form.Label className="mb-1">Stock</Form.Label>
-                          <Form.Control
-                            value={newProd.stock}
-                            onChange={(e) => setNewProd((p) => ({ ...p, stock: e.target.value }))}
-                            placeholder="10"
-                          />
-                        </Col>
-
-                        <Col xs={12} md={6}>
-                          <Form.Label className="mb-1">Category</Form.Label>
-                          <Form.Select
-                            value={newProd.category_id}
-                            onChange={(e) =>
-                              setNewProd((p) => ({ ...p, category_id: e.target.value }))
-                            }
-                          >
-                            <option value="">Select…</option>
-                            {categories.map((c) => (
-                              <option key={c.id} value={c.id}>
-                                {c.category_name}
-                              </option>
-                            ))}
-                          </Form.Select>
-                        </Col>
-
-                        <Col xs={12} md={6}>
-                          <Form.Label className="mb-1">Thumbnail (MVP)</Form.Label>
-                          <Form.Select
-                            value={newProd.image_url}
-                            onChange={(e) =>
-                              setNewProd((p) => ({ ...p, image_url: e.target.value }))
-                            }
-                          >
-                            {THUMBS.map((u) => (
-                              <option key={u} value={u}>
-                                {u}
-                              </option>
-                            ))}
-                          </Form.Select>
-                        </Col>
-
-                        <Col xs={12} className="d-flex align-items-center justify-content-between">
-                          <div className="dashboard-thumb-row">
-                            <img
-                              className="dashboard-thumb"
-                              src={newProd.image_url}
-                              alt="preview"
-                              onError={(e) => {
-                                e.currentTarget.src = THUMBS[0];
-                              }}
-                            />
-                            <div className="dashboard-thumb-note">
-                              Upgrade later: store URL from Cloudinary/Firebase.
-                            </div>
-                          </div>
-
-                          <Button variant="dark" type="submit">
-                            Add Product
-                          </Button>
-                        </Col>
-                      </Row>
-                    </Form>
-                  </Card.Body>
-                </Card>
-
-                {products.length === 0 ? (
-                  <div className="dashboard-empty">No products yet.</div>
-                ) : (
-                  <ListGroup>
-                    {products.map((p) => (
-                      <ListGroup.Item
-                        key={p.id}
-                        className="d-flex align-items-center justify-content-between"
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "14px",
+                          minWidth: 0,
+                          flex: "1 1 420px",
+                        }}
                       >
-                        <div className="dashboard-product-row">
-                          <img
-                            className="dashboard-thumb"
-                            src={p.image_url || THUMBS[0]}
-                            alt={p.product_name}
-                            onError={(e) => {
-                              e.currentTarget.src = THUMBS[0];
-                            }}
-                          />
+                        <img
+                          src={p.image_url || THUMBS[0]}
+                          alt={p.product_name}
+                          style={{
+                            width: "84px",
+                            height: "84px",
+                            objectFit: "cover",
+                            borderRadius: "14px",
+                            border: "1px solid #ddd4c7",
+                            flexShrink: 0,
+                          }}
+                          onError={(e) => {
+                            e.currentTarget.src = THUMBS[0];
+                          }}
+                        />
 
-                          <div>
-                            <div className="dashboard-strong">{p.product_name}</div>
-                            <div className="dashboard-product-meta">
-                              {p._category?.category_name ? (
-                                <>
-                                  Category: <strong>{p._category.category_name}</strong>{" "}
-                                  <span className="dashboard-dot">•</span>{" "}
-                                </>
-                              ) : null}
-                              ${Number(p.price || 0).toFixed(2)}{" "}
-                              <span className="dashboard-dot">•</span>{" "}
-                              Stock: {Number(p.stock ?? 0)}
-                            </div>
+                        <div style={{ minWidth: 0 }}>
+                          <div
+                            style={{
+                              fontWeight: 700,
+                              fontSize: "17px",
+                              color: "#1f1f1f",
+                              marginBottom: "6px",
+                            }}
+                          >
+                            {p.product_name}
+                          </div>
+
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: "10px",
+                              flexWrap: "wrap",
+                              fontSize: "14px",
+                              color: "#6b645b",
+                            }}
+                          >
+                            {p._category?.category_name ? (
+                              <span>
+                                Category: <strong>{p._category.category_name}</strong>
+                              </span>
+                            ) : null}
+                            <span>{currency.format(Number(p.price || 0))}</span>
+                            <span>Stock: {Number(p.stock ?? 0)}</span>
                           </div>
                         </div>
+                      </div>
 
-                        <div className="dashboard-actions">
-                          <Button
-                            size="sm"
-                            variant="outline-dark"
-                            onClick={() => openEditProduct(p)}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline-danger"
-                            onClick={() => deleteProduct(p.id)}
-                          >
-                            Delete
-                          </Button>
-                        </div>
-                      </ListGroup.Item>
-                    ))}
-                  </ListGroup>
-                )}
-              </Card.Body>
-            </Card>
-          </Col>
-        </Row>
-      )}
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "8px",
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <button
+                          type="button"
+                          className="btn-ui btn-secondary-ui"
+                          onClick={() => openEditProduct(p)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-ui btn-secondary-ui"
+                          onClick={() => deleteProduct(p.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
+          </div>
+        )}
+      </div>
 
-      <Modal show={showEditCat} onHide={() => setShowEditCat(false)} centered>
+      <Modal
+        show={showEditCat}
+        onHide={() => setShowEditCat(false)}
+        centered
+      >
         <Modal.Header closeButton>
           <Modal.Title>Edit Category</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Form.Control
+          <label
+            htmlFor="edit-category-name"
+            style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
+          >
+            Category name
+          </label>
+          <input
+            id="edit-category-name"
+            type="text"
+            className="form-input"
             value={editCatName}
             onChange={(e) => setEditCatName(e.target.value)}
             placeholder="Category name"
           />
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowEditCat(false)}>
+          <button
+            type="button"
+            className="btn-ui btn-secondary-ui"
+            onClick={() => setShowEditCat(false)}
+          >
             Cancel
-          </Button>
-          <Button variant="dark" onClick={saveCategory}>
+          </button>
+          <button
+            type="button"
+            className="btn-ui btn-primary-ui"
+            onClick={saveCategory}
+          >
             Save
-          </Button>
+          </button>
         </Modal.Footer>
       </Modal>
 
-      <Modal show={showEditProd} onHide={() => setShowEditProd(false)} centered>
+      <Modal
+        show={showEditProd}
+        onHide={() => setShowEditProd(false)}
+        centered
+      >
         <Modal.Header closeButton>
           <Modal.Title>Edit Product</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <Row className="g-2">
-            <Col xs={12}>
-              <Form.Label className="mb-1">Name</Form.Label>
-              <Form.Control
-                value={editProd?.product_name || ""}
-                onChange={(e) => setEditProd((p) => ({ ...p, product_name: e.target.value }))}
-              />
-            </Col>
-
-            <Col xs={6}>
-              <Form.Label className="mb-1">Price</Form.Label>
-              <Form.Control
-                value={editProd?.price || ""}
-                onChange={(e) => setEditProd((p) => ({ ...p, price: e.target.value }))}
-              />
-            </Col>
-
-            <Col xs={6}>
-              <Form.Label className="mb-1">Stock</Form.Label>
-              <Form.Control
-                value={editProd?.stock || ""}
-                onChange={(e) => setEditProd((p) => ({ ...p, stock: e.target.value }))}
-              />
-            </Col>
-
-            <Col xs={12}>
-              <Form.Label className="mb-1">Category</Form.Label>
-              <Form.Select
-                value={editProd?.category_id || ""}
-                onChange={(e) => setEditProd((p) => ({ ...p, category_id: e.target.value }))}
+          <div
+            style={{
+              display: "grid",
+              gap: "12px",
+            }}
+          >
+            <div>
+              <label
+                htmlFor="edit-product-name"
+                style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
               >
-                <option value="">Select…</option>
+                Product name
+              </label>
+              <input
+                id="edit-product-name"
+                type="text"
+                className="form-input"
+                value={editProd?.product_name || ""}
+                onChange={(e) =>
+                  setEditProd((prev) => ({
+                    ...prev,
+                    product_name: e.target.value,
+                  }))
+                }
+              />
+            </div>
+
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "12px",
+              }}
+            >
+              <div>
+                <label
+                  htmlFor="edit-product-price"
+                  style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
+                >
+                  Price
+                </label>
+                <input
+                  id="edit-product-price"
+                  type="text"
+                  className="form-input"
+                  value={editProd?.price || ""}
+                  onChange={(e) =>
+                    setEditProd((prev) => ({
+                      ...prev,
+                      price: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="edit-product-stock"
+                  style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
+                >
+                  Stock
+                </label>
+                <input
+                  id="edit-product-stock"
+                  type="text"
+                  className="form-input"
+                  value={editProd?.stock || ""}
+                  onChange={(e) =>
+                    setEditProd((prev) => ({
+                      ...prev,
+                      stock: e.target.value,
+                    }))
+                  }
+                />
+              </div>
+            </div>
+
+            <div>
+              <label
+                htmlFor="edit-product-category"
+                style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
+              >
+                Category
+              </label>
+              <select
+                id="edit-product-category"
+                className="form-input"
+                value={editProd?.category_id || ""}
+                onChange={(e) =>
+                  setEditProd((prev) => ({
+                    ...prev,
+                    category_id: e.target.value,
+                  }))
+                }
+              >
+                <option value="">Select a category</option>
                 {categories.map((c) => (
                   <option key={c.id} value={c.id}>
                     {c.category_name}
                   </option>
                 ))}
-              </Form.Select>
-            </Col>
+              </select>
+            </div>
 
-            <Col xs={12}>
-              <Form.Label className="mb-1">Thumbnail (MVP)</Form.Label>
-              <Form.Select
-                value={editProd?.image_url || THUMBS[0]}
-                onChange={(e) => setEditProd((p) => ({ ...p, image_url: e.target.value }))}
+            <div>
+              <label
+                htmlFor="edit-product-thumb"
+                style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
               >
-                {THUMBS.map((u) => (
-                  <option key={u} value={u}>
-                    {u}
+                Thumbnail
+              </label>
+              <select
+                id="edit-product-thumb"
+                className="form-input"
+                value={editProd?.image_url || THUMBS[0]}
+                onChange={(e) =>
+                  setEditProd((prev) => ({
+                    ...prev,
+                    image_url: e.target.value,
+                  }))
+                }
+              >
+                {THUMBS.map((thumb) => (
+                  <option key={thumb} value={thumb}>
+                    {thumb}
                   </option>
                 ))}
-              </Form.Select>
+              </select>
+            </div>
 
-              <div className="dashboard-edit-preview">
-                <img
-                  className="dashboard-thumb"
-                  src={editProd?.image_url || THUMBS[0]}
-                  alt="preview"
-                  onError={(e) => {
-                    e.currentTarget.src = THUMBS[0];
-                  }}
-                />
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "12px",
+                marginTop: "4px",
+              }}
+            >
+              <img
+                src={editProd?.image_url || THUMBS[0]}
+                alt="Preview"
+                style={{
+                  width: "72px",
+                  height: "72px",
+                  objectFit: "cover",
+                  borderRadius: "12px",
+                  border: "1px solid #ddd4c7",
+                }}
+                onError={(e) => {
+                  e.currentTarget.src = THUMBS[0];
+                }}
+              />
+              <div style={{ fontSize: "14px", color: "#6b645b" }}>
+                Updated thumbnail preview.
               </div>
-            </Col>
-          </Row>
+            </div>
+          </div>
         </Modal.Body>
         <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowEditProd(false)}>
+          <button
+            type="button"
+            className="btn-ui btn-secondary-ui"
+            onClick={() => setShowEditProd(false)}
+          >
             Cancel
-          </Button>
-          <Button variant="dark" onClick={saveProduct}>
+          </button>
+          <button
+            type="button"
+            className="btn-ui btn-primary-ui"
+            onClick={saveProduct}
+          >
             Save
-          </Button>
+          </button>
         </Modal.Footer>
       </Modal>
+    </div>
+  );
+}
+
+function StatCard({ label, value }) {
+  return (
+    <div
+      style={{
+        border: "1px solid #e4dccf",
+        borderRadius: "14px",
+        background: "#fcfaf6",
+        padding: "16px",
+      }}
+    >
+      <div
+        style={{
+          fontSize: "13px",
+          color: "#6b645b",
+          marginBottom: "6px",
+        }}
+      >
+        {label}
+      </div>
+      <div
+        style={{
+          fontSize: "28px",
+          fontWeight: 700,
+          color: "#1f1f1f",
+          lineHeight: 1,
+        }}
+      >
+        {value}
+      </div>
     </div>
   );
 }

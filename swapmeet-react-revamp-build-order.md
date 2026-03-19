@@ -160,7 +160,7 @@ This phase is critical. The previous UI likely feels weak because styling happen
 
 ---
 
-## Phase 4 — Shared Component Extraction
+## Phase 4 FREEZE — Shared Component Extraction
 
 ### Objective
 Refactor repeated UI patterns into reusable components.
@@ -224,6 +224,89 @@ Rebuild the frontend page experience using the design system and extracted compo
 - All primary pages feel visually related
 - Core buyer/seller flow is easy to understand
 - Design system is consistently applied
+
+---
+
+## Phase 5.5 — UI Consistency + Product Language Pass
+
+### Objective
+Finalize the frontend by removing inline styling inconsistencies and aligning all visible UI text with a clear, product-focused narrative.
+
+This phase does **not** introduce new features or redesign layouts.  
+It is a **tight cleanup pass** to reinforce maintainability and presentation quality.
+
+---
+
+### Tasks
+
+#### 1. Inline Style Cleanup
+- Move repeated layout styles (flex, gap, spacing, centering) into CSS classes
+- Keep inline styles only for:
+  - Dynamic values
+  - Small one-off adjustments
+- Ensure consistent use of:
+  - `.card-ui`
+  - `.btn-ui`
+  - `.input-ui`
+  - layout utility classes
+
+---
+
+#### 2. Product Language Alignment
+- Remove all internal/dev-facing language such as:
+  - “MVP”
+  - “Buyer Flow”
+  - “Seller Flow”
+  - “Prototype”
+  - “Instructional UI”
+- Replace with clear, product-facing language:
+  - “Browse Categories”
+  - “Your Shop”
+  - “Your Listings”
+  - “Cart”
+  - “Account”
+
+---
+
+#### 3. Copy Tightening
+- Reduce over-explaining text
+- Convert descriptive sentences into concise labels
+  - ❌ “This is where you can browse categories…”
+  - ✅ “Browse Categories”
+- Ensure UI reads quickly and naturally
+
+---
+
+#### 4. Primary Action Clarity
+- Each page should have:
+  - One clear primary action (button or link)
+- Remove competing or redundant CTAs
+- Ensure primary actions are visually dominant
+
+---
+
+#### 5. Header Consistency
+- Use `PageHeader` across all pages
+- Remove custom header implementations
+- Keep titles, subtitles, and meta aligned in tone and structure
+
+---
+
+### Deliverable
+- Consistent styling approach (minimal inline usage)
+- Clear, product-aligned UI language
+- Improved readability and scan-ability
+- UI that feels like a product, not a demo explanation
+
+---
+
+### Gate
+
+- No repeated layout styles remain inline
+- Inline styles are limited to dynamic or one-off use only
+- No dev/internal language appears in the UI
+- All pages have clear, concise headers and primary actions
+- UI reads naturally without explanatory text
 
 ---
 
