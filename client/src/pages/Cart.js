@@ -1,10 +1,13 @@
-// src/pages/Cart.js
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Button from "react-bootstrap/Button";
 import Modal from "react-bootstrap/Modal";
 import api from "../api/client";
 import { AuthContext } from "../helpers/AuthContext";
+import PageHeader from "../components/PageHeader";
+import EmptyState from "../components/EmptyState";
+import LoadingState from "../components/LoadingState";
+import CartItem from "../components/CartItem";
 
 const Cart = () => {
   const { user } = useContext(AuthContext);
@@ -13,7 +16,6 @@ const Cart = () => {
   const [cart, setCart] = useState({ products: [] });
   const [loading, setLoading] = useState(true);
   const [busyPid, setBusyPid] = useState(null);
-
   const [showCheckout, setShowCheckout] = useState(false);
 
   const currency = useMemo(
@@ -27,9 +29,6 @@ const Cart = () => {
 
   const qtyOf = (p) => Number(p?.product_cart?.quantity ?? 1);
 
-  // -------------------------
-  // Load cart once
-  // -------------------------
   const loadCart = async () => {
     try {
       setLoading(true);
@@ -52,9 +51,6 @@ const Cart = () => {
     loadCart();
   }, [user?.id]);
 
-  // -------------------------
-  // Optimistic quantity update
-  // -------------------------
   const applyLocalQty = (product_id, quantity) => {
     setCart((prev) => {
       const products = Array.isArray(prev?.products) ? prev.products : [];
@@ -108,19 +104,21 @@ const Cart = () => {
     );
   }, [cart]);
 
-  // -------------------------
-  // Guards
-  // -------------------------
   if (!user?.id) {
     return (
       <div className="container cart-page">
-        <h2>Shopping Cart</h2>
-        <button
-          className="btn-ui btn-primary-ui"
-          onClick={() => navigate("/login")}
-        >
-          Login
-        </button>
+        <EmptyState
+          title="Shopping Cart"
+          message="Login required to view your cart."
+          action={
+            <button
+              className="btn-ui btn-primary-ui"
+              onClick={() => navigate("/login")}
+            >
+              Login
+            </button>
+          }
+        />
       </div>
     );
   }
@@ -128,81 +126,46 @@ const Cart = () => {
   if (loading) {
     return (
       <div className="container cart-page">
-        Loading cart...
+        <LoadingState
+          title="Loading cart..."
+          message="Pulling your selected items and totals."
+        />
       </div>
     );
   }
 
   const products = Array.isArray(cart?.products) ? cart.products : [];
   const isEmpty = products.length === 0;
+  const itemCount = products.reduce((sum, p) => sum + qtyOf(p), 0);
 
-  // -------------------------
-  // Render
-  // -------------------------
   return (
     <div className="container cart-page">
-      <div className="cart-header">
-        <h2 className="featured-items cart-subheader">Shopping Cart</h2>
-      </div>
+      <PageHeader
+        title="Shopping Cart"
+        subtitle="Review your selected items before checkout."
+        meta={`${itemCount} item${itemCount === 1 ? "" : "s"}`}
+      />
 
       {isEmpty ? (
-        <div className="text-center">Shopping Cart Empty</div>
+        <EmptyState
+          title="Shopping Cart Empty"
+          message="Add items from category or product pages to see them here."
+        />
       ) : (
         <div className="product-wrapper product-wrapper-cart">
-          {products.map((p) => {
-            const qty = qtyOf(p);
-            const disabled = busyPid === p.id;
-            const imgSrc = p.image_url || "https://picsum.photos/400/300";
-
-            return (
-              <div className="cart-product" key={p.id}>
-                <img
-                  className="cart-img"
-                  src={imgSrc}
-                  alt={p.product_name}
-                />
-
-                <h6 className="cart-product-name">{p.product_name}</h6>
-
-                <p className="product-price">
-                  Price: {currency.format(Number(p.price || 0))}
-                </p>
-
-                <div className="cart-qty-row">
-                  <button
-                    type="button"
-                    className="btn-ui btn-secondary-ui"
-                    disabled={disabled}
-                    onClick={() => setQty(p.id, qty - 1)}
-                  >
-                    -
-                  </button>
-
-                  <div className="cart-qty-label">
-                    Qty: <strong>{qty}</strong>
-                  </div>
-
-                  <button
-                    type="button"
-                    className="btn-ui btn-secondary-ui"
-                    disabled={disabled}
-                    onClick={() => setQty(p.id, qty + 1)}
-                  >
-                    +
-                  </button>
-                </div>
-
-                <div className="cart-line-total">
-                  Line total:{" "}
-                  {currency.format(Number(p.price || 0) * qty)}
-                </div>
-              </div>
-            );
-          })}
+          {products.map((p) => (
+            <CartItem
+              key={p.id}
+              product={p}
+              qty={qtyOf(p)}
+              disabled={busyPid === p.id}
+              onChangeQty={setQty}
+              currency={currency}
+            />
+          ))}
         </div>
       )}
 
-      {/* Summary + Checkout */}
       <div className="cart-summary">
         <h3 className="cart-total cart-total-heading">
           Total: {currency.format(total)}
@@ -217,7 +180,6 @@ const Cart = () => {
         </Button>
       </div>
 
-      {/* MVP Checkout Modal */}
       <Modal
         show={showCheckout}
         onHide={() => setShowCheckout(false)}

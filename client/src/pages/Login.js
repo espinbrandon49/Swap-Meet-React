@@ -1,6 +1,7 @@
 import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import { AuthContext } from "../helpers/AuthContext";
+import AuthFormShell from "../components/AuthFormShell";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -11,38 +12,22 @@ const Login = () => {
   const handleLogin = async () => {
     try {
       await login(username.trim(), password);
-      navigate("/"); 
+      navigate("/");
     } catch (err) {
       alert(err?.response?.data?.error || "Login failed");
     }
   };
 
   return (
-    <div className="container login-page">
-      <h2 className="featured-items">Sign In</h2>
-      <div className="form-elements">
-        <input
-          autoComplete="off"
-          className="input-field"
-          placeholder="Store Name"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-
-        <input
-          autoComplete="off"
-          type="password"
-          placeholder="Password"
-          className="input-field"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        <button onClick={handleLogin} className="form-button sign-in">
-          Login
-        </button>
-      </div>
-    </div>
+    <AuthFormShell
+      title="Sign In"
+      username={username}
+      password={password}
+      onUsernameChange={setUsername}
+      onPasswordChange={setPassword}
+      onSubmit={handleLogin}
+      submitLabel="Login"
+    />
   );
 };
 

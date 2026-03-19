@@ -1,12 +1,14 @@
-// src/pages/Profile.js
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import ListGroup from "react-bootstrap/ListGroup";
 import api from "../api/client";
 import { AuthContext } from "../helpers/AuthContext";
+import ProductCard from "../components/ProductCard";
+import EmptyState from "../components/EmptyState";
+import LoadingState from "../components/LoadingState";
 
 const Profile = () => {
-  const { id } = useParams(); // profile user id (shop owner)
+  const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
 
@@ -14,6 +16,7 @@ const Profile = () => {
   const [categories, setCategories] = useState([]);
   const [busyPid, setBusyPid] = useState(null);
   const [toast, setToast] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const isOwner = useMemo(() => {
     if (!user?.id) return false;
@@ -25,6 +28,8 @@ const Profile = () => {
 
     const loadShop = async () => {
       try {
+        setLoading(true);
+
         const res = await api.get("/api/categories");
         const all = Array.isArray(res.data) ? res.data : [];
 
@@ -49,6 +54,9 @@ const Profile = () => {
         if (!mounted) return;
         setCategories([]);
         setShopName("");
+      } finally {
+        if (!mounted) return;
+        setLoading(false);
       }
     };
 
@@ -62,15 +70,6 @@ const Profile = () => {
     setToast(true);
     setTimeout(() => setToast(false), 1200);
   };
-
-  const currency = useMemo(
-    () =>
-      new Intl.NumberFormat("en-US", {
-        style: "currency",
-        currency: "USD",
-      }),
-    []
-  );
 
   const quickAdd = async (pid) => {
     if (!user?.id) {
@@ -87,8 +86,6 @@ const Profile = () => {
       });
 
       showToast();
-
-      // Notify App.js cart badge refresh
       window.dispatchEvent(new CustomEvent("cart:changed"));
     } catch (err) {
       console.error("Quick add failed:", err);
@@ -124,79 +121,62 @@ const Profile = () => {
         </div>
       </div>
 
-      {categories.length === 0 && (
-        <div className="text-center profile-empty">
-          No categories found for this shop.
-        </div>
-      )}
+      {loading ? (
+        <LoadingState
+          title="Loading shop..."
+          message="Gathering categories and products for this shop."
+        />
+      ) : categories.length === 0 ? (
+        <EmptyState
+          title="No categories found"
+          message="This shop has not created any categories yet."
+          className="profile-empty"
+        />
+      ) : (
+        categories.map((cat) => {
+          const products = Array.isArray(cat.products) ? cat.products : [];
 
-      {categories.map((cat) => {
-        const products = Array.isArray(cat.products) ? cat.products : [];
+          return (
+            <div className="category-list" key={cat.id}>
+              <ListGroup onClick={() => navigate(`/category/${cat.id}`)}>
+                <ListGroup.Item className="border-0 p-0 link category-item category-name name-profile">
+                  {cat.category_name}
+                </ListGroup.Item>
+              </ListGroup>
 
-        return (
-          <div className="category-list" key={cat.id}>
-            {/* Category title (clickable) */}
-            <ListGroup onClick={() => navigate(`/category/${cat.id}`)}>
-              <ListGroup.Item className="border-0 p-0 link category-item category-name name-profile">
-                {cat.category_name}
-              </ListGroup.Item>
-            </ListGroup>
-
-            {/* Inline products */}
-            <div className="product-wrapper">
-              {products.map((p) => {
-                const imgSrc = p.image_url || "https://picsum.photos/400/300";
-
-                return (
-                  <div className="product" key={p.id}>
-                    <img
-                      className="product-img"
-                      src={imgSrc}
-                      alt={p.product_name || "Product"}
-                      onError={(e) => {
-                        e.currentTarget.src = "https://picsum.photos/400/300";
-                      }}
+              {products.length === 0 ? (
+                <div style={{ marginTop: "12px" }}>
+                  <EmptyState
+                    title="No products in this category"
+                    message="This category is live, but no items have been added yet."
+                    className="profile-empty-sub"
+                  />
+                </div>
+              ) : (
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
+                    gap: "20px",
+                    marginTop: "12px",
+                  }}
+                >
+                  {products.map((p) => (
+                    <ProductCard
+                      key={p.id}
+                      product={p}
+                      showCategory={false}
+                      showQuickAdd={true}
+                      busy={busyPid === p.id}
+                      onQuickAdd={quickAdd}
                     />
-
-                    <div className="product-description">
-                      <h6 className="product-name">{p.product_name}</h6>
-
-                      <p className="product-price">
-                        Price: {currency.format(Number(p.price || 0))}
-                      </p>
-
-                      {/* Footer actions */}
-                      <div className="product-actions-inline">
-                        <button
-                          className="form-button product-button product-view-btn"
-                          onClick={() => navigate(`/product/${p.id}`)}
-                        >
-                          View
-                        </button>
-
-                        <button
-                          className="form-button product-button product-cart-btn"
-                          onClick={() => quickAdd(p.id)}
-                          disabled={!user?.id || busyPid === p.id}
-                          title={!user?.id ? "Login required" : "Quick Add"}
-                        >
-                          {busyPid === p.id ? "..." : "🛒"}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {products.length === 0 && (
-                <div className="profile-empty-sub">
-                  No products in this category yet.
+                  ))}
                 </div>
               )}
             </div>
-          </div>
-        );
-      })}
+          );
+        })
+      )}
 
       {toast && <div className="micro-toast">Added to cart</div>}
     </div>

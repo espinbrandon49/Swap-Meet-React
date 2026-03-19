@@ -131,7 +131,7 @@ This is a **cleanup pass**, not a redesign.
 
 ---
 
-## Phase 3 — UI System Foundation
+## Phase 3 FREEZE — UI System Foundation
 
 ### Objective
 Create the design system before redesigning pages.

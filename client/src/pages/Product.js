@@ -1,11 +1,12 @@
-// src/pages/Product.js
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import api from "../api/client";
 import { AuthContext } from "../helpers/AuthContext";
+import EmptyState from "../components/EmptyState";
+import LoadingState from "../components/LoadingState";
 
 const Product = () => {
-  const { id } = useParams(); // product id
+  const { id } = useParams();
   const navigate = useNavigate();
   const { user } = useContext(AuthContext);
 
@@ -30,8 +31,6 @@ const Product = () => {
       try {
         setLoading(true);
         const res = await api.get(`/api/products/${id}`);
-
-        // Accept either an object OR an array response
         const data = res.data;
         const p = Array.isArray(data) ? data[0] : data;
 
@@ -81,13 +80,13 @@ const Product = () => {
     }
   };
 
-  // -------------------------
-  // Guards
-  // -------------------------
   if (loading) {
     return (
       <div className="container product-page">
-        Loading product...
+        <LoadingState
+          title="Loading product..."
+          message="Fetching product details, seller info, and price."
+        />
       </div>
     );
   }
@@ -95,10 +94,18 @@ const Product = () => {
   if (!product) {
     return (
       <div className="container product-page">
-        <h3 className="product-not-found">Product not found</h3>
-        <button className="form-button" onClick={() => navigate(-1)}>
-          Back
-        </button>
+        <EmptyState
+          title="Product not found"
+          message="This item may have been removed or the link may be invalid."
+          action={
+            <button
+              className="btn-ui btn-primary-ui"
+              onClick={() => navigate(-1)}
+            >
+              Back
+            </button>
+          }
+        />
       </div>
     );
   }
@@ -111,13 +118,9 @@ const Product = () => {
     product.owner_username ||
     "";
 
-  // -------------------------
-  // Render
-  // -------------------------
   return (
     <div className="container product-page">
       <div className="product-layout">
-        {/* Image */}
         <div className="product-image-wrap">
           <img
             className="product-image-lg"
@@ -129,7 +132,6 @@ const Product = () => {
           />
         </div>
 
-        {/* Details */}
         <div className="product-details">
           <h2 className="product-title">
             {product.product_name || "Unnamed product"}

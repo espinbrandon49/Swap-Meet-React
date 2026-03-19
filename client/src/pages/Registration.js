@@ -2,6 +2,7 @@ import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../api/client";
 import { AuthContext } from "../helpers/AuthContext";
+import AuthFormShell from "../components/AuthFormShell";
 
 const Registration = () => {
   const [username, setUsername] = useState("");
@@ -12,7 +13,7 @@ const Registration = () => {
   const handleRegister = async () => {
     try {
       await api.post("/api/users", { username: username.trim(), password });
-      await login(username.trim(), password); // auto-login
+      await login(username.trim(), password);
       navigate("/");
     } catch (err) {
       alert(err?.response?.data?.error || "Registration failed");
@@ -20,31 +21,15 @@ const Registration = () => {
   };
 
   return (
-    <div className="container login-page">
-      <h2 className="featured-items">Registration</h2>
-      <div className="form-elements">
-        <input
-          autoComplete="off"
-          className="input-field"
-          placeholder="Store Name"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-
-        <input
-          autoComplete="off"
-          type="password"
-          className="input-field"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-
-        <button onClick={handleRegister} className="form-button">
-          Register
-        </button>
-      </div>
-    </div>
+    <AuthFormShell
+      title="Registration"
+      username={username}
+      password={password}
+      onUsernameChange={setUsername}
+      onPasswordChange={setPassword}
+      onSubmit={handleRegister}
+      submitLabel="Register"
+    />
   );
 };
 
