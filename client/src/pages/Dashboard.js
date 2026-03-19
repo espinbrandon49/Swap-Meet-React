@@ -258,7 +258,7 @@ export default function Dashboard() {
 
               <PageHeader
                 title="Manage Your Shop"
-                subtitle="Create categories, add listings, and keep your storefront organized."
+                subtitle="Create categories, add listings, and organize your storefront."
               />
             </div>
 
@@ -280,7 +280,7 @@ export default function Dashboard() {
             <section className="card-ui dashboard-section">
               <PageHeader
                 title="Categories"
-                subtitle="Organize the structure of your shop."
+                subtitle="Organize your shop structure."
               />
 
               <div className="field-stack">
@@ -313,7 +313,7 @@ export default function Dashboard() {
               {categories.length === 0 ? (
                 <EmptyState
                   title="No categories yet"
-                  message="Create your first category to start organizing your shop."
+                  message="Create your first category to organize your shop."
                 />
               ) : (
                 <div className="dashboard-category-list">
@@ -367,7 +367,7 @@ export default function Dashboard() {
                 <div>
                   <h3 className="mb-1">Add a product</h3>
                   <p className="text-muted mb-0">
-                    Choose a category, add pricing and stock, and select a thumbnail.
+                    Choose a category, add price and stock, and select a thumbnail.
                   </p>
                 </div>
 
@@ -503,7 +503,7 @@ export default function Dashboard() {
               {products.length === 0 ? (
                 <EmptyState
                   title="No products yet"
-                  message="Once you add listings, they will appear here with category, price, and stock details."
+                  message="Add listings to see category, price, and stock details here."
                 />
               ) : (
                 <div className="dashboard-product-list">

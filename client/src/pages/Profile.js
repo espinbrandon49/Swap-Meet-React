@@ -153,7 +153,7 @@ const Profile = () => {
               />
 
               <p className="text-muted shop-hero__copy">
-                View this storefront’s categories and products.
+                Browse categories and products from this storefront.
               </p>
             </div>
           </div>
@@ -172,7 +172,7 @@ const Profile = () => {
         <section id="shop-categories">
           <PageHeader
             title="Shop Categories"
-            subtitle="Browse the storefront by category."
+            subtitle="Browse this storefront by category."
           />
 
           {loading ? (

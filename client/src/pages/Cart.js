@@ -135,7 +135,7 @@ const Cart = () => {
       <div className="container page-shell-narrow">
         <EmptyState
           title="Cart access requires login"
-          message="Sign in to review saved items, adjust quantities, and continue to checkout."
+          message="Sign in to review your items and continue to checkout."
           action={
             <button
               type="button"
@@ -155,7 +155,7 @@ const Cart = () => {
       <div className="container">
         <LoadingState
           title="Loading cart..."
-          message="Pulling your selected items, quantities, and totals."
+          message="Pulling your items and totals."
         />
       </div>
     );
@@ -171,7 +171,7 @@ const Cart = () => {
             <div className="cart-hero__copy">
               <PageHeader
                 title="Cart"
-                subtitle="Review your items, adjust quantities, and continue to checkout."
+                subtitle="Review your items and continue to checkout."
                 right={
                   <div className="cart-hero__actions">
                     <Link to="/" className="btn-ui btn-secondary-ui">
@@ -264,10 +264,6 @@ const Cart = () => {
               >
                 Checkout
               </button>
-
-              <p className="text-muted mb-0">
-                Checkout is simulated in this portfolio project.
-              </p>
             </aside>
           </div>
         )}
@@ -281,9 +277,6 @@ const Cart = () => {
         <Modal.Body>
           <div className="checkout-modal-stack">
             <p className="mb-0">Thanks for reviewing the cart flow.</p>
-            <p className="text-muted mb-0">
-              This checkout step is intentionally mocked for the portfolio demo.
-            </p>
             <div className="checkout-total-box">
               <strong>Total:</strong> {currency.format(subtotal)}
             </div>

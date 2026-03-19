@@ -18,7 +18,7 @@ export default function AuthFormShell({
           <input
             autoComplete="off"
             className="input-ui"
-            placeholder="Store Name"
+            placeholder="Storefront Name"
             value={username}
             onChange={(e) => onUsernameChange(e.target.value)}
           />

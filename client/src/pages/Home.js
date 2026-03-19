@@ -60,21 +60,21 @@ export default function Home() {
         <section className="card-ui hero-card">
           <div className="hero-grid">
             <div className="hero-copy">
-              <small>Marketplace System</small>
+              <small>Marketplace</small>
 
               <h1 className="hero-title">
-                Browse storefronts, explore categories, and view products across
-                a structured marketplace system
+                Browse categories, view products, and track your cart across one
+                structured marketplace
               </h1>
 
               <p className="text-muted hero-text">
-                Navigate storefronts, explore category structures, and move
-                products into your cart through a clear, structured system.
+                Move from storefronts to categories to products through a clear,
+                organized shopping flow.
               </p>
 
               <div className="hero-actions">
                 <a href="#browse-categories" className="btn-ui btn-primary-ui">
-                  Explore Categories
+                  Browse Categories
                 </a>
                 <a href="#latest-products" className="btn-ui btn-secondary-ui">
                   View Products
@@ -100,22 +100,21 @@ export default function Home() {
         <section className="split-panel">
           <div className="card-ui">
             <PageHeader
-              title="Explore Categories"
-              subtitle="Categories organize each storefront and provide the clearest navigation path."
+              title="Browse Categories"
+              subtitle="Start with categories to move from storefronts to products."
             />
 
             <p className="text-muted mb-0">
-              Each storefront is structured by categories, making it easy to move
-              from shop to product.
+              Categories provide the clearest path through the marketplace.
             </p>
           </div>
 
           <div className="card-ui info-stack">
-            <small>How it works</small>
+            <small>Flow</small>
 
             <div className="flow-list">
-              <FlowRow step="1" title="Explore categories" />
-              <FlowRow step="2" title="View a product" />
+              <FlowRow step="1" title="Browse categories" />
+              <FlowRow step="2" title="Open a product" />
               <FlowRow step="3" title="Add to cart" />
             </div>
 
@@ -132,8 +131,8 @@ export default function Home() {
         <section id="browse-categories" className="section-stack">
           <div className="section-head-row">
             <PageHeader
-              title="Explore Categories"
-              subtitle="Explore categories across independent storefronts."
+              title="Browse Categories"
+              subtitle="View categories across storefronts."
             />
 
             {!loadingCategories && categories.length > 0 ? (
@@ -151,7 +150,7 @@ export default function Home() {
           ) : categories.length === 0 ? (
             <EmptyState
               title="No categories available yet"
-              message="Once sellers add categories, they will appear here."
+              message="Categories will appear here after sellers add them."
             />
           ) : (
             <>
@@ -176,7 +175,7 @@ export default function Home() {
           <div className="section-head-row">
             <PageHeader
               title="Latest Products"
-              subtitle="View recently added products across storefronts."
+              subtitle="Recently added products across storefronts."
             />
 
             {!loadingProducts && products.length > 0 ? (
@@ -194,7 +193,7 @@ export default function Home() {
           ) : products.length === 0 ? (
             <EmptyState
               title="No products available yet"
-              message="Check back after sellers add listings."
+              message="Products will appear here after listings are added."
             />
           ) : (
             <>

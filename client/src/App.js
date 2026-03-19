@@ -92,7 +92,7 @@ function AppShell() {
           <small>Loading marketplace...</small>
           <h2 className="mt-1 mb-1">Preparing Swap Meet React</h2>
           <p className="text-muted mb-0">
-            Restoring your session and storefront navigation.
+            Restoring your session and navigation.
           </p>
         </div>
       </div>
@@ -146,8 +146,8 @@ function AppShell() {
             <div>
               <small className="mb-1">Marketplace</small>
               <p className="site-header__subbar-copy">
-                Browse categories, inspect products, manage your listings, and
-                review your cart in one consistent app.
+                Browse categories, view products, manage your listings, and
+                review your cart in one place.
               </p>
             </div>
 
@@ -207,8 +207,8 @@ function AppShell() {
           <div>
             <div className="site-footer__title">Swap Meet React</div>
             <small>
-              MERN marketplace portfolio project focused on clear browsing,
-              shop management, and cart flow.
+              A category-based marketplace with browsing, shop management, and
+              cart flow.
             </small>
           </div>
 

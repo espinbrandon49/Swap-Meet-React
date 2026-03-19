@@ -686,12 +686,6 @@ label.form-label-ui {
   gap: 10px;
 }
 
-.auth-page__title {
-  margin: 0;
-  font-size: 36px;
-  line-height: 1.1;
-}
-
 .auth-page__copy {
   margin: 0;
   max-width: 720px;
@@ -801,17 +795,6 @@ label.form-label-ui {
 .product-details {
   display: grid;
   gap: 18px;
-}
-
-.product-title-wrap small {
-  display: block;
-  margin-bottom: 6px;
-}
-
-.product-title {
-  margin: 0;
-  font-size: 40px;
-  line-height: 1.1;
 }
 
 .badge-row {
@@ -1408,6 +1391,7 @@ label.form-label-ui {
   grid-template-columns: 1fr 1fr;
   gap: 12px;
 }
+
 /* =========================
    NOT FOUND PAGE
    ========================= */
@@ -1532,6 +1516,7 @@ label.form-label-ui {
     font-size: 42px;
   }
 }
+
 /* =========================
    TOAST
    ========================= */
@@ -1631,8 +1616,7 @@ label.form-label-ui {
   }
 
   .hero-title,
-  .product-title,
-  .auth-page__title {
+  .page-header__title {
     font-size: 32px;
   }
 

@@ -104,7 +104,7 @@ export default function Category() {
             <div>
               <PageHeader
                 title={category?.category_name || "Category"}
-                subtitle="View all products in this category."
+                subtitle="Products in this category."
                 meta={
                   !loading
                     ? `${products.length} item${products.length === 1 ? "" : "s"}`
@@ -185,8 +185,6 @@ export default function Category() {
                   Products in {category.category_name}
                 </h2>
               </div>
-
-              <div className="text-muted">Select products and add them to your cart.</div>
             </div>
 
             <div className="grid-products">

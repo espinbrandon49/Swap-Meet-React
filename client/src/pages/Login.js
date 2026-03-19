@@ -2,6 +2,7 @@ import React, { useContext, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AuthContext } from "../helpers/AuthContext";
 import AuthFormShell from "../components/AuthFormShell";
+import PageHeader from "../components/PageHeader";
 
 const Login = () => {
   const [username, setUsername] = useState("");
@@ -60,11 +61,13 @@ const Login = () => {
 
         <section className="card-ui auth-page__feature">
           <div className="auth-page__intro">
-            <small>Account access</small>
-            <h1 className="auth-page__title">Return to your storefront</h1>
+            <PageHeader
+              title="Return to Your Storefront"
+              subtitle="Account access"
+            />
             <p className="text-muted auth-page__copy">
               Sign in to manage your listings, review your cart, and continue
-              browsing across storefronts and categories.
+              browsing.
             </p>
           </div>
 
@@ -92,7 +95,7 @@ const Login = () => {
             </div>
 
             <ul className="auth-page__list">
-              <li>Use your existing storefront name and password.</li>
+              <li>Use your storefront name and password.</li>
               <li>Your cart and dashboard are protected.</li>
               <li>After login, you’ll return to the home page.</li>
             </ul>

@@ -1,8 +1,9 @@
 import React from "react";
 
-export default function LoadingState({
-  title = "Loading...",
+export default function EmptyState({
+  title,
   message = "",
+  action = null,
   className = "",
 }) {
   return (
@@ -12,6 +13,8 @@ export default function LoadingState({
       {message ? (
         <p className="text-muted state-card__message">{message}</p>
       ) : null}
+
+      {action ? <div className="state-card__action">{action}</div> : null}
     </div>
   );
 }

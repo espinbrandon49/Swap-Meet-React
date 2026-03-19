@@ -4,6 +4,7 @@ import api from "../api/client";
 import { AuthContext } from "../helpers/AuthContext";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
+import PageHeader from "../components/PageHeader";
 
 const FALLBACK_IMAGE = "https://picsum.photos/900/700";
 
@@ -84,7 +85,8 @@ export default function Product() {
     category?.owner?.username ||
     product?.owner_username ||
     "Storefront";
-  const categoryName = category?.category_name || product?.category_name || "Category";
+  const categoryName =
+    category?.category_name || product?.category_name || "Category";
 
   const handleQuantityChange = (nextValue) => {
     const numeric = Number(nextValue);
@@ -181,7 +183,7 @@ export default function Product() {
                   to={category?.id ? `/category/${category.id}` : "/"}
                   className="btn-ui btn-secondary-ui"
                 >
-                  Return to Category
+                  View Category
                 </Link>
 
                 {owner?.id ? (
@@ -193,10 +195,10 @@ export default function Product() {
             </div>
 
             <div className="product-details">
-              <div className="product-title-wrap">
-                <small>Product</small>
-                <h1 className="product-title">{product.product_name}</h1>
-              </div>
+              <PageHeader
+                title={product.product_name}
+                subtitle="Product"
+              />
 
               <div className="badge-row">
                 <span className="soft-badge">{categoryName}</span>
@@ -210,15 +212,11 @@ export default function Product() {
                 {currency.format(Number(product.price || 0))}
               </div>
 
-              <p className="text-muted mb-0">
-                Review product details, select quantity, and add to cart.
-              </p>
-
               <div className="purchase-panel">
                 <div>
-                  <h2 className="purchase-panel__title">Add to cart</h2>
+                  <h2 className="purchase-panel__title">Add to Cart</h2>
                   <p className="text-muted purchase-panel__subtitle">
-                    Choose a quantity and save this item to your cart.
+                    Choose a quantity and add this item to your cart.
                   </p>
                 </div>
 

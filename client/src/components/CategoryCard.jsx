@@ -25,7 +25,7 @@ export default function CategoryCard({ category }) {
 
         <div className="category-card__footer">
           <Link to={`/category/${category.id}`} className="btn-ui btn-primary-ui">
-            Open Category
+            View Category
           </Link>
         </div>
       </div>

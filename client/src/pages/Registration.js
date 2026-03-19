@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import api from "../api/client";
 import { AuthContext } from "../helpers/AuthContext";
 import AuthFormShell from "../components/AuthFormShell";
+import PageHeader from "../components/PageHeader";
 
 const Registration = () => {
   const [username, setUsername] = useState("");
@@ -62,8 +63,10 @@ const Registration = () => {
 
         <section className="card-ui auth-page__feature">
           <div className="auth-page__intro">
-            <small>Account setup</small>
-            <h1 className="auth-page__title">Create your storefront account</h1>
+            <PageHeader
+              title="Create Your Storefront Account"
+              subtitle="Account setup"
+            />
             <p className="text-muted auth-page__copy">
               Sign up to create categories, add listings, manage your storefront,
               and share your public pages.
