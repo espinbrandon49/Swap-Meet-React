@@ -8,17 +8,14 @@ export default function PageHeader({
 }) {
   return (
     <div className="page-header">
-      <div>
-        <h2 style={{ marginBottom: "4px", marginTop: 0 }}>
-          {title}
-        </h2>
-
+      <div className="page-header__content">
+        <h2 className="page-header__title">{title}</h2>
         {subtitle ? <small>{subtitle}</small> : null}
       </div>
 
       {(meta || right) ? (
-        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-          {meta ? <div className="text-muted">{meta}</div> : null}
+        <div className="page-header__meta">
+          {meta ? <div className="page-header__meta-text">{meta}</div> : null}
           {right}
         </div>
       ) : null}

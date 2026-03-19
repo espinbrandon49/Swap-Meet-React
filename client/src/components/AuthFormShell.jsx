@@ -10,23 +10,11 @@ export default function AuthFormShell({
   submitLabel,
 }) {
   return (
-    <div className="container login-page">
-      <div
-        className="card-ui"
-        style={{
-          maxWidth: "420px",
-          margin: "48px auto 0",
-        }}
-      >
-        <h2 style={{ marginTop: 0, marginBottom: "20px" }}>{title}</h2>
+    <div className="auth-shell">
+      <div className="card-ui">
+        <h2 className="auth-shell__title">{title}</h2>
 
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "12px",
-          }}
-        >
+        <div className="auth-shell__form">
           <input
             autoComplete="off"
             className="input-ui"

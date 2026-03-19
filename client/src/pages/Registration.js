@@ -1,4 +1,3 @@
-// src/pages/Registration.js
 import React, { useContext, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import api from "../api/client";
@@ -39,15 +38,8 @@ const Registration = () => {
   };
 
   return (
-    <div className="container" style={{ maxWidth: "1100px" }}>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "minmax(320px, 420px) minmax(0, 1fr)",
-          gap: "24px",
-          alignItems: "stretch",
-        }}
-      >
+    <div className="container auth-page">
+      <div className="auth-page__grid">
         <div>
           <AuthFormShell
             title="Create Account"
@@ -56,133 +48,58 @@ const Registration = () => {
             onUsernameChange={setUsername}
             onPasswordChange={setPassword}
             onSubmit={handleRegister}
-            submitLabel={submitting ? "Creating Account..." : "Register"}
+            submitLabel={submitting ? "Creating Account..." : "Create Account"}
           />
 
-          <div
-            style={{
-              maxWidth: "420px",
-              margin: "16px auto 0",
-              textAlign: "center",
-              color: "#6b645b",
-              fontSize: "14px",
-            }}
-          >
+          <div className="auth-page__aside">
             Already have an account?{" "}
-            <Link
-              to="/login"
-              style={{
-                color: "#7c5c3b",
-                fontWeight: 600,
-                textDecoration: "none",
-              }}
-            >
+            <Link to="/login" className="btn-link-ui">
               Sign in here
             </Link>
             .
           </div>
         </div>
 
-        <section
-          className="card-ui"
-          style={{
-            padding: "28px",
-            display: "grid",
-            gap: "22px",
-            alignContent: "start",
-            marginTop: "48px",
-          }}
-        >
-          <div style={{ display: "grid", gap: "10px" }}>
-            <small>Seller onboarding</small>
-            <h1
-              style={{
-                margin: 0,
-                fontSize: "36px",
-                lineHeight: 1.1,
-              }}
-            >
-              Create your marketplace account
-            </h1>
-            <p
-              className="text-muted"
-              style={{
-                margin: 0,
-                maxWidth: "720px",
-                lineHeight: 1.7,
-              }}
-            >
-              Register to create your shop presence, organize products into
-              categories, manage listings from the dashboard, and participate in
-              the full buyer and seller marketplace flow.
+        <section className="card-ui auth-page__feature">
+          <div className="auth-page__intro">
+            <small>Account setup</small>
+            <h1 className="auth-page__title">Create your storefront account</h1>
+            <p className="text-muted auth-page__copy">
+              Sign up to create categories, add listings, manage your storefront,
+              and share your public pages.
             </p>
           </div>
 
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, minmax(140px, 1fr))",
-              gap: "14px",
-            }}
-          >
+          <div className="auth-info-grid">
             <AuthInfoCard
-              label="Step 1"
-              value="Create"
+              label="Create"
+              value="Account"
               note="Set up your username and password."
             />
             <AuthInfoCard
-              label="Step 2"
-              value="Build"
-              note="Add categories and products in the dashboard."
+              label="Build"
+              value="Listings"
+              note="Create categories and add products in your dashboard."
             />
             <AuthInfoCard
-              label="Step 3"
-              value="Share"
-              note="Use your public shop and category pages."
+              label="Share"
+              value="Storefront"
+              note="Share your public storefront and category pages."
             />
           </div>
 
-          <div
-            style={{
-              border: "1px solid #e4dccf",
-              borderRadius: "18px",
-              padding: "18px",
-              background: "#fcfaf6",
-              display: "grid",
-              gap: "12px",
-            }}
-          >
+          <div className="auth-page__cta-box">
             <div>
-              <h2
-                style={{
-                  margin: 0,
-                  fontSize: "20px",
-                }}
-              >
-                Registration notes
-              </h2>
+              <h2 className="auth-page__cta-title">Get started</h2>
             </div>
 
-            <ul
-              style={{
-                margin: 0,
-                paddingLeft: "18px",
-                color: "#5f5a52",
-                lineHeight: 1.7,
-              }}
-            >
+            <ul className="auth-page__list">
               <li>Your account signs in automatically after registration.</li>
-              <li>You can begin managing your shop immediately.</li>
-              <li>Protected routes unlock once the session is established.</li>
+              <li>You can start managing your storefront right away.</li>
+              <li>Your dashboard and cart are available after sign-in.</li>
             </ul>
 
-            <div
-              style={{
-                display: "flex",
-                gap: "10px",
-                flexWrap: "wrap",
-              }}
-            >
+            <div className="auth-page__actions">
               <button
                 type="button"
                 className="btn-ui btn-primary-ui"
@@ -193,7 +110,7 @@ const Registration = () => {
               </button>
 
               <Link to="/login" className="btn-ui btn-secondary-ui">
-                Already Have an Account
+                Sign In
               </Link>
             </div>
           </div>
@@ -205,43 +122,10 @@ const Registration = () => {
 
 function AuthInfoCard({ label, value, note }) {
   return (
-    <div
-      style={{
-        border: "1px solid #e4dccf",
-        borderRadius: "16px",
-        background: "#fcfaf6",
-        padding: "18px",
-        display: "grid",
-        gap: "8px",
-      }}
-    >
-      <div
-        style={{
-          fontSize: "13px",
-          color: "#6b645b",
-        }}
-      >
-        {label}
-      </div>
-      <div
-        style={{
-          fontSize: "24px",
-          fontWeight: 700,
-          color: "#1f1f1f",
-          lineHeight: 1.1,
-        }}
-      >
-        {value}
-      </div>
-      <div
-        style={{
-          fontSize: "14px",
-          color: "#5f5a52",
-          lineHeight: 1.5,
-        }}
-      >
-        {note}
-      </div>
+    <div className="auth-info-card">
+      <div className="auth-info-card__label">{label}</div>
+      <div className="auth-info-card__value">{value}</div>
+      <div className="auth-info-card__note">{note}</div>
     </div>
   );
 }

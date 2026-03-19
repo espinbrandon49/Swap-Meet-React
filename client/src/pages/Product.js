@@ -1,4 +1,3 @@
-// src/pages/Product.js
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../api/client";
@@ -55,7 +54,7 @@ export default function Product() {
             (data?.user_id
               ? {
                   id: data.user_id,
-                  username: data.username || data.owner_username || "Seller",
+                  username: data.username || data.owner_username || "Storefront",
                 }
               : null)
         );
@@ -81,7 +80,10 @@ export default function Product() {
   const stock = Number(product?.stock ?? 0);
   const safeQuantity = Math.max(1, Math.min(quantity, stock || 1));
   const ownerName =
-    owner?.username || category?.owner?.username || product?.owner_username || "Seller";
+    owner?.username ||
+    category?.owner?.username ||
+    product?.owner_username ||
+    "Storefront";
   const categoryName = category?.category_name || product?.category_name || "Category";
 
   const handleQuantityChange = (nextValue) => {
@@ -132,7 +134,7 @@ export default function Product() {
 
   if (loading) {
     return (
-      <div className="container" style={{ maxWidth: "1200px" }}>
+      <div className="container">
         <LoadingState
           title="Loading product..."
           message="Pulling product details, seller info, and category context."
@@ -143,7 +145,7 @@ export default function Product() {
 
   if (!product) {
     return (
-      <div className="container" style={{ maxWidth: "900px" }}>
+      <div className="container page-shell-narrow">
         <EmptyState
           title="Product not found"
           message="This listing may have been removed or the link may be invalid."
@@ -158,180 +160,71 @@ export default function Product() {
   }
 
   return (
-    <div className="container" style={{ maxWidth: "1200px" }}>
-      <div style={{ display: "grid", gap: "24px" }}>
-        <section className="card-ui" style={{ padding: "28px" }}>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "minmax(0, 1.1fr) minmax(340px, 0.9fr)",
-              gap: "28px",
-              alignItems: "start",
-            }}
-          >
-            <div
-              style={{
-                display: "grid",
-                gap: "16px",
-              }}
-            >
-              <div
-                style={{
-                  borderRadius: "22px",
-                  overflow: "hidden",
-                  border: "1px solid #ddd4c7",
-                  background: "#f4efe7",
-                }}
-              >
+    <div className="container">
+      <div className="page-shell">
+        <section className="card-ui product-layout">
+          <div className="product-layout__grid">
+            <div className="product-gallery">
+              <div className="product-image-frame">
                 <img
                   src={product.image_url || FALLBACK_IMAGE}
                   alt={product.product_name}
-                  style={{
-                    width: "100%",
-                    height: "520px",
-                    objectFit: "cover",
-                    display: "block",
-                  }}
+                  className="product-image-frame__img"
                   onError={(e) => {
                     e.currentTarget.src = FALLBACK_IMAGE;
                   }}
                 />
               </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: "12px",
-                  flexWrap: "wrap",
-                }}
-              >
+              <div className="product-actions-row">
                 <Link
                   to={category?.id ? `/category/${category.id}` : "/"}
                   className="btn-ui btn-secondary-ui"
                 >
-                  Back to Category
+                  Return to Category
                 </Link>
 
                 {owner?.id ? (
-                  <Link
-                    to={`/profile/${owner.id}`}
-                    className="btn-ui btn-secondary-ui"
-                  >
-                    Visit Shop
+                  <Link to={`/profile/${owner.id}`} className="btn-ui btn-secondary-ui">
+                    View Storefront
                   </Link>
                 ) : null}
               </div>
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gap: "18px",
-              }}
-            >
-              <div>
-                <small style={{ display: "block", marginBottom: "6px" }}>
-                  Marketplace listing
-                </small>
-                <h1
-                  style={{
-                    margin: 0,
-                    fontSize: "40px",
-                    lineHeight: 1.1,
-                  }}
-                >
-                  {product.product_name}
-                </h1>
+            <div className="product-details">
+              <div className="product-title-wrap">
+                <small>Product</small>
+                <h1 className="product-title">{product.product_name}</h1>
               </div>
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: "10px",
-                  flexWrap: "wrap",
-                }}
-              >
+              <div className="badge-row">
                 <span className="soft-badge">{categoryName}</span>
-                <span className="soft-badge">
-                  Seller: {ownerName}
-                </span>
+                <span className="soft-badge">Storefront: {ownerName}</span>
                 <span className="soft-badge">
                   {stock > 0 ? `${stock} in stock` : "Out of stock"}
                 </span>
               </div>
 
-              <div
-                style={{
-                  fontSize: "34px",
-                  fontWeight: 700,
-                  color: "#1f1f1f",
-                  lineHeight: 1,
-                }}
-              >
+              <div className="product-price-lg">
                 {currency.format(Number(product.price || 0))}
               </div>
 
-              <p
-                className="text-muted"
-                style={{
-                  margin: 0,
-                  fontSize: "15px",
-                  lineHeight: 1.7,
-                }}
-              >
-                This product page is designed to make the buyer flow clearer:
-                the item, its category, its seller, and the next action all live
-                in one place instead of being scattered across the app.
+              <p className="text-muted mb-0">
+                Review product details, select quantity, and add to cart.
               </p>
 
-              <div
-                style={{
-                  border: "1px solid #e4dccf",
-                  borderRadius: "18px",
-                  padding: "18px",
-                  background: "#fcfaf6",
-                  display: "grid",
-                  gap: "14px",
-                }}
-              >
+              <div className="purchase-panel">
                 <div>
-                  <h2
-                    style={{
-                      margin: 0,
-                      fontSize: "20px",
-                    }}
-                  >
-                    Purchase panel
-                  </h2>
-                  <p
-                    className="text-muted"
-                    style={{
-                      marginTop: "6px",
-                      marginBottom: 0,
-                    }}
-                  >
-                    Choose quantity and add this item to your cart.
+                  <h2 className="purchase-panel__title">Add to cart</h2>
+                  <p className="text-muted purchase-panel__subtitle">
+                    Choose a quantity and save this item to your cart.
                   </p>
                 </div>
 
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "140px minmax(0, 1fr)",
-                    gap: "14px",
-                    alignItems: "end",
-                  }}
-                >
+                <div className="purchase-panel__grid">
                   <div>
-                    <label
-                      htmlFor="product-quantity"
-                      style={{
-                        display: "block",
-                        marginBottom: "6px",
-                        fontWeight: 600,
-                        fontSize: "14px",
-                      }}
-                    >
+                    <label htmlFor="product-quantity" className="form-label-ui">
                       Quantity
                     </label>
                     <input
@@ -339,20 +232,14 @@ export default function Product() {
                       type="number"
                       min="1"
                       max={stock > 0 ? stock : undefined}
-                      className="form-input"
+                      className="input-ui"
                       value={quantity}
                       onChange={(e) => handleQuantityChange(e.target.value)}
                       disabled={stock <= 0}
                     />
                   </div>
 
-                  <div
-                    style={{
-                      display: "flex",
-                      gap: "10px",
-                      flexWrap: "wrap",
-                    }}
-                  >
+                  <div className="button-row">
                     <button
                       type="button"
                       className="btn-ui btn-primary-ui"
@@ -371,7 +258,7 @@ export default function Product() {
                         to={`/profile/${owner.id}`}
                         className="btn-ui btn-secondary-ui"
                       >
-                        More from Seller
+                        View More Products
                       </Link>
                     ) : null}
                   </div>
@@ -379,20 +266,11 @@ export default function Product() {
               </div>
 
               {isOwner ? (
-                <div
-                  style={{
-                    border: "1px solid #e4dccf",
-                    borderRadius: "16px",
-                    padding: "16px",
-                    background: "#f7f1e7",
-                    display: "grid",
-                    gap: "8px",
-                  }}
-                >
-                  <small>Owner visibility</small>
+                <div className="product-owner-box">
+                  <small>Owner</small>
                   <strong>You own this listing.</strong>
                   <div className="text-muted">
-                    Manage this product through your dashboard and shop pages.
+                    Manage this product from your dashboard.
                   </div>
                   <div>
                     <button
@@ -409,100 +287,43 @@ export default function Product() {
           </div>
         </section>
 
-        <section
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, minmax(160px, 1fr))",
-            gap: "16px",
-          }}
-        >
-          <ProductStatCard label="Price" value={currency.format(Number(product.price || 0))} />
-          <ProductStatCard label="Stock" value={stock} compactText={typeof stock === "string"} />
-          <ProductStatCard label="Category" value={categoryName} compactText={true} />
+        <section className="stats-grid-3">
+          <ProductStatCard
+            label="Price"
+            value={currency.format(Number(product.price || 0))}
+          />
+          <ProductStatCard label="Stock" value={stock} />
+          <ProductStatCard label="Category" value={categoryName} compactText />
         </section>
 
         <section className="card-ui">
-          <div
-            style={{
-              display: "grid",
-              gap: "14px",
-            }}
-          >
+          <div className="context-grid">
             <div>
-              <small style={{ display: "block", marginBottom: "6px" }}>
-                Listing context
-              </small>
-              <h2 style={{ margin: 0, fontSize: "26px" }}>
-                Seller and category
-              </h2>
+              <small className="mb-1">Listing details</small>
+              <h2 className="mb-0">Storefront and category</h2>
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
-                gap: "16px",
-              }}
-            >
-              <div
-                style={{
-                  border: "1px solid #e4dccf",
-                  borderRadius: "16px",
-                  padding: "18px",
-                  background: "#fcfaf6",
-                  display: "grid",
-                  gap: "10px",
-                }}
-              >
-                <small>Seller</small>
-                <div
-                  style={{
-                    fontSize: "22px",
-                    fontWeight: 700,
-                    color: "#1f1f1f",
-                  }}
-                >
-                  {ownerName}
-                </div>
-                <p className="text-muted" style={{ margin: 0 }}>
-                  View the seller storefront to browse more products from the
-                  same shop owner.
+            <div className="context-card-grid">
+              <div className="context-card">
+                <small>Storefront</small>
+                <div className="context-card__value">{ownerName}</div>
+                <p className="text-muted mb-0">
+                  Browse more listings from this storefront.
                 </p>
                 {owner?.id ? (
                   <div>
-                    <Link
-                      to={`/profile/${owner.id}`}
-                      className="btn-ui btn-secondary-ui"
-                    >
-                      Visit Shop
+                    <Link to={`/profile/${owner.id}`} className="btn-ui btn-secondary-ui">
+                      View Storefront
                     </Link>
                   </div>
                 ) : null}
               </div>
 
-              <div
-                style={{
-                  border: "1px solid #e4dccf",
-                  borderRadius: "16px",
-                  padding: "18px",
-                  background: "#fcfaf6",
-                  display: "grid",
-                  gap: "10px",
-                }}
-              >
+              <div className="context-card">
                 <small>Category</small>
-                <div
-                  style={{
-                    fontSize: "22px",
-                    fontWeight: 700,
-                    color: "#1f1f1f",
-                  }}
-                >
-                  {categoryName}
-                </div>
-                <p className="text-muted" style={{ margin: 0 }}>
-                  Browse the full category page to compare this listing with
-                  related items.
+                <div className="context-card__value">{categoryName}</div>
+                <p className="text-muted mb-0">
+                  Open the category page to compare related items.
                 </p>
                 {category?.id ? (
                   <div>
@@ -527,25 +348,12 @@ export default function Product() {
 
 function ProductStatCard({ label, value, compactText = false }) {
   return (
-    <div className="card-ui" style={{ padding: "18px 20px" }}>
+    <div className="card-ui">
+      <div className="stat-card__label">{label}</div>
       <div
-        style={{
-          fontSize: "13px",
-          color: "#6b645b",
-          marginBottom: "8px",
-        }}
-      >
-        {label}
-      </div>
-
-      <div
-        style={{
-          fontSize: compactText ? "22px" : "30px",
-          fontWeight: 700,
-          color: "#1f1f1f",
-          lineHeight: 1.1,
-          wordBreak: "break-word",
-        }}
+        className={`stat-card__value${
+          compactText ? " stat-card__value--compact" : ""
+        }`}
       >
         {value}
       </div>

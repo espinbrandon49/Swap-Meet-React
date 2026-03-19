@@ -1,99 +1,33 @@
-// src/pages/PageNotFound.js
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
+import PageHeader from "../components/PageHeader";
 
 const PageNotFound = () => {
   const location = useLocation();
 
   return (
-    <div className="container" style={{ maxWidth: "980px" }}>
-      <div
-        className="card-ui"
-        style={{
-          padding: "32px",
-          display: "grid",
-          gap: "24px",
-          textAlign: "center",
-        }}
-      >
-        <div style={{ display: "grid", gap: "10px" }}>
-          <small>Routing fallback</small>
-          <h1
-            style={{
-              margin: 0,
-              fontSize: "52px",
-              lineHeight: 1,
-            }}
-          >
-            404
-          </h1>
-          <h2
-            style={{
-              margin: 0,
-              fontSize: "30px",
-              lineHeight: 1.15,
-            }}
-          >
-            This page could not be found
-          </h2>
-          <p
-            className="text-muted"
-            style={{
-              margin: 0,
-              maxWidth: "680px",
-              marginInline: "auto",
-              lineHeight: 1.7,
-            }}
-          >
-            The route you tried to open does not exist in this marketplace build,
-            may have been removed, or may have been entered incorrectly.
+    <div className="container page-shell-narrow">
+      <div className="card-ui not-found-page">
+        <div className="not-found-page__header">
+          <small>Page not found</small>
+
+          <PageHeader
+            title="404"
+            subtitle="This page could not be found"
+          />
+
+          <p className="text-muted not-found-page__copy">
+            The route you tried to open does not exist, may have been removed,
+            or may have been entered incorrectly.
           </p>
         </div>
 
-        <div
-          style={{
-            border: "1px solid #e4dccf",
-            borderRadius: "18px",
-            background: "#fcfaf6",
-            padding: "18px",
-            maxWidth: "720px",
-            margin: "0 auto",
-            width: "100%",
-            display: "grid",
-            gap: "10px",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "13px",
-              color: "#6b645b",
-            }}
-          >
-            Requested path
-          </div>
-          <code
-            style={{
-              display: "block",
-              fontSize: "15px",
-              color: "#1f1f1f",
-              wordBreak: "break-word",
-              background: "#f4efe7",
-              border: "1px solid #ddd4c7",
-              borderRadius: "12px",
-              padding: "12px 14px",
-            }}
-          >
-            {location.pathname}
-          </code>
+        <div className="not-found-path-box">
+          <div className="not-found-path-box__label">Requested path</div>
+          <code className="not-found-path-box__value">{location.pathname}</code>
         </div>
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, minmax(160px, 1fr))",
-            gap: "14px",
-          }}
-        >
+        <div className="not-found-hint-grid">
           <RouteHintCard
             label="Browse"
             value="Home"
@@ -102,23 +36,16 @@ const PageNotFound = () => {
           <RouteHintCard
             label="Shop"
             value="Categories"
-            note="Navigate through category and product routes."
+            note="Navigate through category and product pages."
           />
           <RouteHintCard
             label="Account"
             value="Login"
-            note="Access protected buyer and seller views."
+            note="Access protected cart and shop management pages."
           />
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "center",
-            gap: "12px",
-            flexWrap: "wrap",
-          }}
-        >
+        <div className="not-found-actions">
           <Link to="/" className="btn-ui btn-primary-ui">
             Back to Home
           </Link>
@@ -132,14 +59,7 @@ const PageNotFound = () => {
           </Link>
         </div>
 
-        <div
-          style={{
-            fontSize: "14px",
-            color: "#6b645b",
-          }}
-        >
-          ¯\_(ツ)_/¯
-        </div>
+        <div className="not-found-page__footer">¯\_(ツ)_/¯</div>
       </div>
     </div>
   );
@@ -147,44 +67,10 @@ const PageNotFound = () => {
 
 function RouteHintCard({ label, value, note }) {
   return (
-    <div
-      style={{
-        border: "1px solid #e4dccf",
-        borderRadius: "16px",
-        background: "#ffffff",
-        padding: "18px",
-        display: "grid",
-        gap: "8px",
-        textAlign: "left",
-      }}
-    >
-      <div
-        style={{
-          fontSize: "13px",
-          color: "#6b645b",
-        }}
-      >
-        {label}
-      </div>
-      <div
-        style={{
-          fontSize: "24px",
-          fontWeight: 700,
-          color: "#1f1f1f",
-          lineHeight: 1.1,
-        }}
-      >
-        {value}
-      </div>
-      <div
-        style={{
-          fontSize: "14px",
-          color: "#5f5a52",
-          lineHeight: 1.5,
-        }}
-      >
-        {note}
-      </div>
+    <div className="not-found-hint-card">
+      <div className="not-found-hint-card__label">{label}</div>
+      <div className="not-found-hint-card__value">{value}</div>
+      <div className="not-found-hint-card__note">{note}</div>
     </div>
   );
 }

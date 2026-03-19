@@ -20,38 +20,40 @@ export default function CartItem({
         }}
       />
 
-      <h6 className="cart-product-name">{product.product_name}</h6>
+      <div className="cart-product__content">
+        <h6 className="cart-product-name">{product.product_name}</h6>
 
-      <p className="product-price">
-        Price: {currency.format(Number(product.price || 0))}
-      </p>
+        <p className="product-price">
+          Price: {currency.format(Number(product.price || 0))}
+        </p>
 
-      <div className="cart-qty-row">
-        <button
-          type="button"
-          className="btn-ui btn-secondary-ui"
-          disabled={disabled}
-          onClick={() => onChangeQty(product.id, qty - 1)}
-        >
-          -
-        </button>
+        <div className="cart-qty-row">
+          <button
+            type="button"
+            className="btn-ui btn-secondary-ui"
+            disabled={disabled}
+            onClick={() => onChangeQty(product.id, qty - 1)}
+          >
+            -
+          </button>
 
-        <div className="cart-qty-label">
-          Qty: <strong>{qty}</strong>
+          <div className="cart-qty-label">
+            Qty: <strong>{qty}</strong>
+          </div>
+
+          <button
+            type="button"
+            className="btn-ui btn-secondary-ui"
+            disabled={disabled}
+            onClick={() => onChangeQty(product.id, qty + 1)}
+          >
+            +
+          </button>
         </div>
 
-        <button
-          type="button"
-          className="btn-ui btn-secondary-ui"
-          disabled={disabled}
-          onClick={() => onChangeQty(product.id, qty + 1)}
-        >
-          +
-        </button>
-      </div>
-
-      <div className="cart-line-total">
-        Line total: {currency.format(Number(product.price || 0) * qty)}
+        <div className="cart-line-total">
+          Line total: {currency.format(Number(product.price || 0) * qty)}
+        </div>
       </div>
     </div>
   );

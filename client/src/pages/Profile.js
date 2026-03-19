@@ -1,4 +1,3 @@
-// src/pages/Profile.js
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../api/client";
@@ -104,104 +103,76 @@ const Profile = () => {
     }
   };
 
-  const displayName = shopName || (isOwner ? "Your Shop" : "Shop");
+  const displayName = shopName || (isOwner ? "Your Storefront" : "Storefront");
   const heroImage = "https://picsum.photos/320/320";
 
   return (
-    <div className="container" style={{ maxWidth: "1200px" }}>
-      <div style={{ display: "grid", gap: "24px" }}>
-        <section className="card-ui" style={{ padding: "28px" }}>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "140px minmax(0, 1fr)",
-              gap: "24px",
-              alignItems: "center",
-            }}
-          >
+    <div className="container">
+      <div className="page-shell">
+        <section className="card-ui shop-hero">
+          <div className="shop-hero__grid">
             <div>
               <img
                 src={heroImage}
                 alt={displayName}
-                style={{
-                  width: "140px",
-                  height: "140px",
-                  objectFit: "cover",
-                  borderRadius: "20px",
-                  border: "1px solid #ddd4c7",
-                  display: "block",
-                }}
+                className="shop-hero__image"
                 onError={(e) => {
                   e.currentTarget.src = "https://picsum.photos/300/300";
                 }}
               />
             </div>
 
-            <div style={{ display: "grid", gap: "12px" }}>
-              <div>
-                <small style={{ display: "block", marginBottom: "6px" }}>
-                  Public shop page
-                </small>
-                <h1 style={{ margin: 0 }}>{displayName}</h1>
-              </div>
+            <div className="shop-hero__content">
+              <PageHeader
+                title={displayName}
+                subtitle="Storefront"
+                meta={
+                  !loading
+                    ? `${categories.length} categor${
+                        categories.length === 1 ? "y" : "ies"
+                      } · ${totalProducts} product${totalProducts === 1 ? "" : "s"}`
+                    : ""
+                }
+                right={
+                  <div className="button-row">
+                    {isOwner ? (
+                      <button
+                        type="button"
+                        className="btn-ui btn-primary-ui"
+                        onClick={() => navigate("/dashboard")}
+                      >
+                        Manage Your Storefront
+                      </button>
+                    ) : null}
 
-              <p
-                className="text-muted"
-                style={{
-                  margin: 0,
-                  maxWidth: "760px",
-                }}
-              >
-                Browse this seller’s categories and products in one place. This
-                page acts as the public-facing storefront for the shop owner.
+                    <a href="#shop-categories" className="btn-ui btn-secondary-ui">
+                      View Categories
+                    </a>
+                  </div>
+                }
+              />
+
+              <p className="text-muted shop-hero__copy">
+                View this storefront’s categories and products.
               </p>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: "12px",
-                  flexWrap: "wrap",
-                  alignItems: "center",
-                }}
-              >
-                {isOwner ? (
-                  <button
-                    type="button"
-                    className="btn-ui btn-primary-ui"
-                    onClick={() => navigate("/dashboard")}
-                  >
-                    Manage My Shop
-                  </button>
-                ) : null}
-
-                <a href="#shop-categories" className="btn-ui btn-secondary-ui">
-                  Browse Categories
-                </a>
-              </div>
             </div>
           </div>
         </section>
 
-        <section
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(3, minmax(140px, 1fr))",
-            gap: "16px",
-          }}
-        >
+        <section className="stats-grid-3">
           <ShopStatCard label="Categories" value={categories.length} />
           <ShopStatCard label="Products" value={totalProducts} />
           <ShopStatCard
-            label="Owner View"
-            value={isOwner ? "Yes" : "Public"}
-            compactText={typeof (isOwner ? "Yes" : "Public") === "string"}
+            label="View"
+            value={isOwner ? "Owner" : "Public"}
+            compactText
           />
         </section>
 
         <section id="shop-categories">
           <PageHeader
             title="Shop Categories"
-            subtitle="Browse the storefront by seller-owned category."
+            subtitle="Browse the storefront by category."
           />
 
           {loading ? (
@@ -226,7 +197,7 @@ const Profile = () => {
               }
             />
           ) : (
-            <div style={{ display: "grid", gap: "28px" }}>
+            <div className="category-section-list">
               {categories.map((category) => {
                 const products = Array.isArray(category.products)
                   ? category.products
@@ -234,39 +205,18 @@ const Profile = () => {
 
                 return (
                   <section key={category.id} className="card-ui">
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        gap: "16px",
-                        flexWrap: "wrap",
-                        marginBottom: "16px",
-                      }}
-                    >
+                    <div className="category-section-card__head">
                       <div>
-                        <small style={{ display: "block", marginBottom: "4px" }}>
+                        <small className="category-section-card__eyebrow">
                           Category
                         </small>
 
-                        <h2
-                          style={{
-                            margin: 0,
-                            fontSize: "24px",
-                            lineHeight: 1.2,
-                          }}
-                        >
+                        <h2 className="category-section-card__title">
                           {category.category_name || "Unnamed Category"}
                         </h2>
 
-                        <p
-                          className="text-muted"
-                          style={{
-                            margin: "8px 0 0",
-                          }}
-                        >
-                          {products.length} product
-                          {products.length === 1 ? "" : "s"} in this category
+                        <p className="text-muted category-section-card__meta">
+                          {products.length} product{products.length === 1 ? "" : "s"}
                         </p>
                       </div>
 
@@ -286,20 +236,13 @@ const Profile = () => {
                         message="This category is live, but no items have been added yet."
                       />
                     ) : (
-                      <div
-                        style={{
-                          display: "grid",
-                          gridTemplateColumns:
-                            "repeat(auto-fill, minmax(250px, 1fr))",
-                          gap: "20px",
-                        }}
-                      >
+                      <div className="grid-products">
                         {products.map((product) => (
                           <ProductCard
                             key={product.id}
                             product={product}
                             showCategory={false}
-                            showQuickAdd={true}
+                            showQuickAdd
                             busy={busyPid === product.id}
                             onQuickAdd={quickAdd}
                           />
@@ -311,9 +254,9 @@ const Profile = () => {
               })}
             </div>
           )}
-        </section>
 
-        {toast && <div className="micro-toast">Added to cart</div>}
+          {toast && <div className="micro-toast">Added to cart</div>}
+        </section>
       </div>
     </div>
   );
@@ -321,24 +264,12 @@ const Profile = () => {
 
 function ShopStatCard({ label, value, compactText = false }) {
   return (
-    <div className="card-ui" style={{ padding: "18px 20px" }}>
+    <div className="card-ui">
+      <div className="stat-card__label">{label}</div>
       <div
-        style={{
-          fontSize: "13px",
-          color: "#6b645b",
-          marginBottom: "8px",
-        }}
-      >
-        {label}
-      </div>
-
-      <div
-        style={{
-          fontSize: compactText ? "22px" : "30px",
-          fontWeight: 700,
-          color: "#1f1f1f",
-          lineHeight: 1,
-        }}
+        className={`stat-card__value${
+          compactText ? " stat-card__value--compact" : ""
+        }`}
       >
         {value}
       </div>

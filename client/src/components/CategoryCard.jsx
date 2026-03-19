@@ -4,10 +4,7 @@ import { Link } from "react-router-dom";
 export default function CategoryCard({ category }) {
   if (!category) return null;
 
-  const ownerName =
-    category.owner?.username ||
-    category.username ||
-    "Shop";
+  const ownerName = category.owner?.username || category.username || "Storefront";
 
   const productCount = Array.isArray(category.products)
     ? category.products.length
@@ -15,30 +12,20 @@ export default function CategoryCard({ category }) {
 
   return (
     <div className="card-ui">
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "10px",
-          height: "100%",
-        }}
-      >
+      <div className="category-card__body">
         <small>{ownerName}</small>
 
-        <h3 style={{ margin: 0 }}>
+        <h3 className="category-card__title">
           {category.category_name || "Category"}
         </h3>
 
-        <p className="text-muted" style={{ margin: 0 }}>
+        <p className="text-muted mb-0">
           {productCount} item{productCount === 1 ? "" : "s"}
         </p>
 
-        <div style={{ marginTop: "auto" }}>
-          <Link
-            to={`/category/${category.id}`}
-            className="btn-ui btn-primary-ui"
-          >
-            View Category
+        <div className="category-card__footer">
+          <Link to={`/category/${category.id}`} className="btn-ui btn-primary-ui">
+            Open Category
           </Link>
         </div>
       </div>

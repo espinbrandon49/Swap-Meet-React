@@ -1,4 +1,3 @@
-// src/pages/Dashboard.js
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Modal from "react-bootstrap/Modal";
@@ -6,6 +5,7 @@ import api from "../api/client";
 import { AuthContext } from "../helpers/AuthContext";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
+import PageHeader from "../components/PageHeader";
 
 export default function Dashboard() {
   const { user } = useContext(AuthContext);
@@ -226,20 +226,11 @@ export default function Dashboard() {
 
   if (!user?.id) {
     return (
-      <div className="container" style={{ maxWidth: "900px" }}>
-        <div
-          className="card-ui"
-          style={{
-            display: "grid",
-            gap: "12px",
-          }}
-        >
-          <small>Seller access</small>
-          <h1 style={{ margin: 0 }}>Dashboard</h1>
-          <p className="text-muted" style={{ margin: 0 }}>
-            You need to be signed in to manage categories and products.
-          </p>
-          <div>
+      <div className="container page-shell-narrow">
+        <EmptyState
+          title="Dashboard access requires login"
+          message="Sign in to manage categories and listings."
+          action={
             <button
               type="button"
               className="btn-ui btn-primary-ui"
@@ -247,8 +238,8 @@ export default function Dashboard() {
             >
               Go to Login
             </button>
-          </div>
-        </div>
+          }
+        />
       </div>
     );
   }
@@ -256,63 +247,22 @@ export default function Dashboard() {
   const totalStock = products.reduce((sum, p) => sum + Number(p?.stock ?? 0), 0);
 
   return (
-    <div className="container" style={{ maxWidth: "1200px" }}>
-      <div
-        style={{
-          display: "grid",
-          gap: "24px",
-        }}
-      >
-        <section className="card-ui" style={{ padding: "28px" }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              gap: "20px",
-              flexWrap: "wrap",
-            }}
-          >
-            <div style={{ display: "grid", gap: "10px" }}>
-              <Link
-                to={`/profile/${user.id}`}
-                style={{
-                  textDecoration: "none",
-                  fontWeight: 600,
-                  color: "#7c5c3b",
-                }}
-              >
-                ← Back to My Shop
+    <div className="container">
+      <div className="page-shell">
+        <section className="card-ui dashboard-hero">
+          <div className="dashboard-hero__top">
+            <div className="dashboard-hero__copy">
+              <Link to={`/profile/${user.id}`} className="dashboard-back-link">
+                ← Back to Your Shop
               </Link>
 
-              <div>
-                <small style={{ display: "block", marginBottom: "6px" }}>
-                  Owner workspace
-                </small>
-                <h1 style={{ margin: 0 }}>Dashboard</h1>
-              </div>
-
-              <p
-                className="text-muted"
-                style={{
-                  margin: 0,
-                  maxWidth: "760px",
-                }}
-              >
-                Manage your storefront structure from one place. Create categories,
-                add products, and keep your shop organized without bouncing between screens.
-              </p>
+              <PageHeader
+                title="Manage Your Shop"
+                subtitle="Create categories, add listings, and keep your storefront organized."
+              />
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, minmax(120px, 1fr))",
-                gap: "12px",
-                minWidth: "320px",
-                flex: "1 1 320px",
-              }}
-            >
+            <div className="dashboard-stat-grid">
               <StatCard label="Categories" value={categories.length} />
               <StatCard label="Products" value={products.length} />
               <StatCard label="Units in Stock" value={totalStock} />
@@ -326,52 +276,23 @@ export default function Dashboard() {
             message="Pulling your categories, products, and shop data."
           />
         ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "minmax(320px, 380px) minmax(0, 1fr)",
-              gap: "24px",
-              alignItems: "start",
-            }}
-          >
-            <section
-              className="card-ui"
-              style={{
-                display: "grid",
-                gap: "20px",
-              }}
-            >
-              <div>
-                <small style={{ display: "block", marginBottom: "6px" }}>
-                  Structure
-                </small>
-                <h2 style={{ margin: 0, fontSize: "24px" }}>Categories</h2>
-              </div>
+          <div className="dashboard-layout">
+            <section className="card-ui dashboard-section">
+              <PageHeader
+                title="Categories"
+                subtitle="Organize the structure of your shop."
+              />
 
-              <div
-                style={{
-                  display: "grid",
-                  gap: "10px",
-                }}
-              >
-                <label
-                  htmlFor="new-category-name"
-                  style={{ fontWeight: 600, fontSize: "14px" }}
-                >
+              <div className="field-stack">
+                <label htmlFor="new-category-name" className="form-label-ui">
                   Add a category
                 </label>
 
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr auto",
-                    gap: "10px",
-                  }}
-                >
+                <div className="field-inline">
                   <input
                     id="new-category-name"
                     type="text"
-                    className="form-input"
+                    className="input-ui"
                     value={newCatName}
                     onChange={(e) => setNewCatName(e.target.value)}
                     placeholder="Example: Vintage Jackets"
@@ -392,68 +313,27 @@ export default function Dashboard() {
               {categories.length === 0 ? (
                 <EmptyState
                   title="No categories yet"
-                  message="Create your first category to start structuring your shop."
+                  message="Create your first category to start organizing your shop."
                 />
               ) : (
-                <div
-                  style={{
-                    display: "grid",
-                    gap: "12px",
-                  }}
-                >
+                <div className="dashboard-category-list">
                   {categories.map((c) => {
                     const categoryProducts = Array.isArray(c.products) ? c.products : [];
 
                     return (
-                      <div
-                        key={c.id}
-                        style={{
-                          border: "1px solid #e4dccf",
-                          borderRadius: "14px",
-                          padding: "16px",
-                          background: "#fcfaf6",
-                          display: "grid",
-                          gap: "12px",
-                        }}
-                      >
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            gap: "12px",
-                            alignItems: "flex-start",
-                            flexWrap: "wrap",
-                          }}
-                        >
+                      <div key={c.id} className="dashboard-category-card">
+                        <div className="dashboard-category-card__top">
                           <div>
-                            <div
-                              style={{
-                                fontWeight: 700,
-                                fontSize: "16px",
-                                color: "#1f1f1f",
-                              }}
-                            >
+                            <div className="dashboard-category-card__title">
                               {c.category_name}
                             </div>
-                            <div
-                              style={{
-                                fontSize: "14px",
-                                color: "#6b645b",
-                                marginTop: "4px",
-                              }}
-                            >
+                            <div className="dashboard-category-card__meta">
                               {categoryProducts.length} product
                               {categoryProducts.length === 1 ? "" : "s"}
                             </div>
                           </div>
 
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: "8px",
-                              flexWrap: "wrap",
-                            }}
-                          >
+                          <div className="button-row">
                             <button
                               type="button"
                               className="btn-ui btn-secondary-ui"
@@ -477,58 +357,29 @@ export default function Dashboard() {
               )}
             </section>
 
-            <section
-              className="card-ui"
-              style={{
-                display: "grid",
-                gap: "22px",
-              }}
-            >
-              <div>
-                <small style={{ display: "block", marginBottom: "6px" }}>
-                  Inventory
-                </small>
-                <h2 style={{ margin: 0, fontSize: "24px" }}>Products</h2>
-              </div>
+            <section className="card-ui dashboard-section">
+              <PageHeader
+                title="Your Listings"
+                subtitle="Add products, assign categories, and manage stock."
+              />
 
-              <div
-                style={{
-                  border: "1px solid #e4dccf",
-                  borderRadius: "16px",
-                  padding: "18px",
-                  background: "#fcfaf6",
-                  display: "grid",
-                  gap: "14px",
-                }}
-              >
+              <div className="dashboard-product-form">
                 <div>
-                  <h3 style={{ margin: 0, fontSize: "18px" }}>Add a product</h3>
-                  <p
-                    className="text-muted"
-                    style={{ marginTop: "6px", marginBottom: 0 }}
-                  >
-                    MVP note: product images are selected from a static thumbnail list.
+                  <h3 className="mb-1">Add a product</h3>
+                  <p className="text-muted mb-0">
+                    Choose a category, add pricing and stock, and select a thumbnail.
                   </p>
                 </div>
 
-                <div
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(12, minmax(0, 1fr))",
-                    gap: "12px",
-                  }}
-                >
-                  <div style={{ gridColumn: "span 6" }}>
-                    <label
-                      htmlFor="new-product-name"
-                      style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
-                    >
+                <div className="dashboard-product-form__grid">
+                  <div className="col-span-6">
+                    <label htmlFor="new-product-name" className="form-label-ui">
                       Product name
                     </label>
                     <input
                       id="new-product-name"
                       type="text"
-                      className="form-input"
+                      className="input-ui"
                       value={newProd.product_name}
                       onChange={(e) =>
                         setNewProd((prev) => ({
@@ -540,17 +391,14 @@ export default function Dashboard() {
                     />
                   </div>
 
-                  <div style={{ gridColumn: "span 3" }}>
-                    <label
-                      htmlFor="new-product-price"
-                      style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
-                    >
+                  <div className="col-span-3">
+                    <label htmlFor="new-product-price" className="form-label-ui">
                       Price
                     </label>
                     <input
                       id="new-product-price"
                       type="text"
-                      className="form-input"
+                      className="input-ui"
                       value={newProd.price}
                       onChange={(e) =>
                         setNewProd((prev) => ({
@@ -562,17 +410,14 @@ export default function Dashboard() {
                     />
                   </div>
 
-                  <div style={{ gridColumn: "span 3" }}>
-                    <label
-                      htmlFor="new-product-stock"
-                      style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
-                    >
+                  <div className="col-span-3">
+                    <label htmlFor="new-product-stock" className="form-label-ui">
                       Stock
                     </label>
                     <input
                       id="new-product-stock"
                       type="text"
-                      className="form-input"
+                      className="input-ui"
                       value={newProd.stock}
                       onChange={(e) =>
                         setNewProd((prev) => ({
@@ -584,16 +429,13 @@ export default function Dashboard() {
                     />
                   </div>
 
-                  <div style={{ gridColumn: "span 6" }}>
-                    <label
-                      htmlFor="new-product-category"
-                      style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
-                    >
+                  <div className="col-span-6">
+                    <label htmlFor="new-product-category" className="form-label-ui">
                       Category
                     </label>
                     <select
                       id="new-product-category"
-                      className="form-input"
+                      className="input-ui"
                       value={newProd.category_id}
                       onChange={(e) =>
                         setNewProd((prev) => ({
@@ -611,16 +453,13 @@ export default function Dashboard() {
                     </select>
                   </div>
 
-                  <div style={{ gridColumn: "span 6" }}>
-                    <label
-                      htmlFor="new-product-thumb"
-                      style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
-                    >
+                  <div className="col-span-6">
+                    <label htmlFor="new-product-thumb" className="form-label-ui">
                       Thumbnail
                     </label>
                     <select
                       id="new-product-thumb"
-                      className="form-input"
+                      className="input-ui"
                       value={newProd.image_url}
                       onChange={(e) =>
                         setNewProd((prev) => ({
@@ -638,39 +477,17 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: "16px",
-                    flexWrap: "wrap",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "12px",
-                    }}
-                  >
+                <div className="preview-row">
+                  <div className="preview-media">
                     <img
                       src={newProd.image_url || THUMBS[0]}
                       alt="Preview"
-                      style={{
-                        width: "72px",
-                        height: "72px",
-                        objectFit: "cover",
-                        borderRadius: "12px",
-                        border: "1px solid #ddd4c7",
-                      }}
+                      className="preview-thumb"
                       onError={(e) => {
                         e.currentTarget.src = THUMBS[0];
                       }}
                     />
-                    <div style={{ fontSize: "14px", color: "#6b645b" }}>
-                      Preview image for the new product.
-                    </div>
+                    <div className="text-muted">Preview for the new product.</div>
                   </div>
 
                   <button
@@ -686,76 +503,28 @@ export default function Dashboard() {
               {products.length === 0 ? (
                 <EmptyState
                   title="No products yet"
-                  message="Once you add products, they will appear here with category, price, and stock details."
+                  message="Once you add listings, they will appear here with category, price, and stock details."
                 />
               ) : (
-                <div
-                  style={{
-                    display: "grid",
-                    gap: "14px",
-                  }}
-                >
+                <div className="dashboard-product-list">
                   {products.map((p) => (
-                    <div
-                      key={p.id}
-                      style={{
-                        border: "1px solid #e4dccf",
-                        borderRadius: "16px",
-                        padding: "16px",
-                        background: "#ffffff",
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        gap: "16px",
-                        flexWrap: "wrap",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "14px",
-                          minWidth: 0,
-                          flex: "1 1 420px",
-                        }}
-                      >
+                    <div key={p.id} className="dashboard-product-card">
+                      <div className="dashboard-product-card__main">
                         <img
                           src={p.image_url || THUMBS[0]}
                           alt={p.product_name}
-                          style={{
-                            width: "84px",
-                            height: "84px",
-                            objectFit: "cover",
-                            borderRadius: "14px",
-                            border: "1px solid #ddd4c7",
-                            flexShrink: 0,
-                          }}
+                          className="dashboard-product-card__image"
                           onError={(e) => {
                             e.currentTarget.src = THUMBS[0];
                           }}
                         />
 
-                        <div style={{ minWidth: 0 }}>
-                          <div
-                            style={{
-                              fontWeight: 700,
-                              fontSize: "17px",
-                              color: "#1f1f1f",
-                              marginBottom: "6px",
-                            }}
-                          >
+                        <div className="dashboard-product-card__content">
+                          <div className="dashboard-product-card__title">
                             {p.product_name}
                           </div>
 
-                          <div
-                            style={{
-                              display: "flex",
-                              gap: "10px",
-                              flexWrap: "wrap",
-                              fontSize: "14px",
-                              color: "#6b645b",
-                            }}
-                          >
+                          <div className="dashboard-product-card__meta">
                             {p._category?.category_name ? (
                               <span>
                                 Category: <strong>{p._category.category_name}</strong>
@@ -767,13 +536,7 @@ export default function Dashboard() {
                         </div>
                       </div>
 
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: "8px",
-                          flexWrap: "wrap",
-                        }}
-                      >
+                      <div className="button-row">
                         <button
                           type="button"
                           className="btn-ui btn-secondary-ui"
@@ -798,25 +561,18 @@ export default function Dashboard() {
         )}
       </div>
 
-      <Modal
-        show={showEditCat}
-        onHide={() => setShowEditCat(false)}
-        centered
-      >
+      <Modal show={showEditCat} onHide={() => setShowEditCat(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Edit Category</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <label
-            htmlFor="edit-category-name"
-            style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
-          >
+          <label htmlFor="edit-category-name" className="form-label-ui">
             Category name
           </label>
           <input
             id="edit-category-name"
             type="text"
-            className="form-input"
+            className="input-ui"
             value={editCatName}
             onChange={(e) => setEditCatName(e.target.value)}
             placeholder="Category name"
@@ -840,32 +596,20 @@ export default function Dashboard() {
         </Modal.Footer>
       </Modal>
 
-      <Modal
-        show={showEditProd}
-        onHide={() => setShowEditProd(false)}
-        centered
-      >
+      <Modal show={showEditProd} onHide={() => setShowEditProd(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>Edit Product</Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          <div
-            style={{
-              display: "grid",
-              gap: "12px",
-            }}
-          >
+          <div className="modal-form-grid">
             <div>
-              <label
-                htmlFor="edit-product-name"
-                style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
-              >
+              <label htmlFor="edit-product-name" className="form-label-ui">
                 Product name
               </label>
               <input
                 id="edit-product-name"
                 type="text"
-                className="form-input"
+                className="input-ui"
                 value={editProd?.product_name || ""}
                 onChange={(e) =>
                   setEditProd((prev) => ({
@@ -876,24 +620,15 @@ export default function Dashboard() {
               />
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "12px",
-              }}
-            >
+            <div className="modal-grid-2">
               <div>
-                <label
-                  htmlFor="edit-product-price"
-                  style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
-                >
+                <label htmlFor="edit-product-price" className="form-label-ui">
                   Price
                 </label>
                 <input
                   id="edit-product-price"
                   type="text"
-                  className="form-input"
+                  className="input-ui"
                   value={editProd?.price || ""}
                   onChange={(e) =>
                     setEditProd((prev) => ({
@@ -905,16 +640,13 @@ export default function Dashboard() {
               </div>
 
               <div>
-                <label
-                  htmlFor="edit-product-stock"
-                  style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
-                >
+                <label htmlFor="edit-product-stock" className="form-label-ui">
                   Stock
                 </label>
                 <input
                   id="edit-product-stock"
                   type="text"
-                  className="form-input"
+                  className="input-ui"
                   value={editProd?.stock || ""}
                   onChange={(e) =>
                     setEditProd((prev) => ({
@@ -927,15 +659,12 @@ export default function Dashboard() {
             </div>
 
             <div>
-              <label
-                htmlFor="edit-product-category"
-                style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
-              >
+              <label htmlFor="edit-product-category" className="form-label-ui">
                 Category
               </label>
               <select
                 id="edit-product-category"
-                className="form-input"
+                className="input-ui"
                 value={editProd?.category_id || ""}
                 onChange={(e) =>
                   setEditProd((prev) => ({
@@ -954,15 +683,12 @@ export default function Dashboard() {
             </div>
 
             <div>
-              <label
-                htmlFor="edit-product-thumb"
-                style={{ display: "block", marginBottom: "6px", fontWeight: 600 }}
-              >
+              <label htmlFor="edit-product-thumb" className="form-label-ui">
                 Thumbnail
               </label>
               <select
                 id="edit-product-thumb"
-                className="form-input"
+                className="input-ui"
                 value={editProd?.image_url || THUMBS[0]}
                 onChange={(e) =>
                   setEditProd((prev) => ({
@@ -979,31 +705,16 @@ export default function Dashboard() {
               </select>
             </div>
 
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "12px",
-                marginTop: "4px",
-              }}
-            >
+            <div className="preview-media">
               <img
                 src={editProd?.image_url || THUMBS[0]}
                 alt="Preview"
-                style={{
-                  width: "72px",
-                  height: "72px",
-                  objectFit: "cover",
-                  borderRadius: "12px",
-                  border: "1px solid #ddd4c7",
-                }}
+                className="preview-thumb"
                 onError={(e) => {
                   e.currentTarget.src = THUMBS[0];
                 }}
               />
-              <div style={{ fontSize: "14px", color: "#6b645b" }}>
-                Updated thumbnail preview.
-              </div>
+              <div className="text-muted">Updated thumbnail preview.</div>
             </div>
           </div>
         </Modal.Body>
@@ -1030,33 +741,9 @@ export default function Dashboard() {
 
 function StatCard({ label, value }) {
   return (
-    <div
-      style={{
-        border: "1px solid #e4dccf",
-        borderRadius: "14px",
-        background: "#fcfaf6",
-        padding: "16px",
-      }}
-    >
-      <div
-        style={{
-          fontSize: "13px",
-          color: "#6b645b",
-          marginBottom: "6px",
-        }}
-      >
-        {label}
-      </div>
-      <div
-        style={{
-          fontSize: "28px",
-          fontWeight: 700,
-          color: "#1f1f1f",
-          lineHeight: 1,
-        }}
-      >
-        {value}
-      </div>
+    <div className="stat-card">
+      <div className="stat-card__label">{label}</div>
+      <div className="stat-card__value">{value}</div>
     </div>
   );
 }

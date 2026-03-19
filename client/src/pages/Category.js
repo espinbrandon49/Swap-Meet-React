@@ -1,4 +1,3 @@
-// src/pages/Category.js
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import api from "../api/client";
@@ -23,7 +22,7 @@ export default function Category() {
     return (
       category?.owner || {
         id: category?.user_id,
-        username: category?.username || category?.owner_username || "Shop",
+        username: category?.username || category?.owner_username || "Storefront",
       }
     );
   }, [category]);
@@ -98,22 +97,14 @@ export default function Category() {
   };
 
   return (
-    <div className="container" style={{ maxWidth: "1200px" }}>
-      <div style={{ display: "grid", gap: "24px" }}>
-        <section className="card-ui" style={{ padding: "28px" }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              gap: "20px",
-              flexWrap: "wrap",
-            }}
-          >
-            <div style={{ display: "grid", gap: "10px" }}>
+    <div className="container">
+      <div className="page-shell">
+        <section className="card-ui category-hero">
+          <div className="category-hero__top">
+            <div>
               <PageHeader
                 title={category?.category_name || "Category"}
-                subtitle="Browse all products grouped under this seller-owned category."
+                subtitle="View all products in this category."
                 meta={
                   !loading
                     ? `${products.length} item${products.length === 1 ? "" : "s"}`
@@ -121,19 +112,10 @@ export default function Category() {
                 }
               />
 
-              <div
-                style={{
-                  display: "flex",
-                  gap: "10px",
-                  flexWrap: "wrap",
-                }}
-              >
+              <div className="category-hero__actions">
                 {owner?.id ? (
-                  <Link
-                    to={`/profile/${owner.id}`}
-                    className="btn-ui btn-secondary-ui"
-                  >
-                    Visit Shop
+                  <Link to={`/profile/${owner.id}`} className="btn-ui btn-secondary-ui">
+                    View Storefront
                   </Link>
                 ) : null}
 
@@ -147,28 +129,20 @@ export default function Category() {
                     className="btn-ui btn-primary-ui"
                     onClick={() => navigate("/dashboard")}
                   >
-                    Manage Category
+                    Manage Inventory
                   </button>
                 ) : null}
               </div>
             </div>
 
             {!loading && (
-              <div
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(3, minmax(130px, 1fr))",
-                  gap: "12px",
-                  minWidth: "320px",
-                  flex: "1 1 320px",
-                }}
-              >
+              <div className="category-stat-grid">
                 <CategoryStatCard label="Products" value={products.length} />
                 <CategoryStatCard label="Units in Stock" value={totalStock} />
                 <CategoryStatCard
-                  label="Seller"
-                  value={owner?.username || "Shop"}
-                  compactText={true}
+                  label="Storefront"
+                  value={owner?.username || "Storefront"}
+                  compactText
                 />
               </div>
             )}
@@ -197,49 +171,31 @@ export default function Category() {
             action={
               owner?.id ? (
                 <Link to={`/profile/${owner.id}`} className="btn-ui btn-secondary-ui">
-                  Visit Shop
+                  View Storefront
                 </Link>
               ) : null
             }
           />
         ) : (
-          <section style={{ display: "grid", gap: "20px" }}>
-            <div
-              style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                gap: "16px",
-                flexWrap: "wrap",
-              }}
-            >
+          <section className="category-content">
+            <div className="category-content__head">
               <div>
-                <small style={{ display: "block", marginBottom: "4px" }}>
-                  Product grid
-                </small>
-                <h2 style={{ margin: 0, fontSize: "26px" }}>
-                  Items in {category.category_name}
+                <small className="category-content__eyebrow">Products</small>
+                <h2 className="category-content__title">
+                  Products in {category.category_name}
                 </h2>
               </div>
 
-              <div className="text-muted">
-                Quick add is available directly from this page.
-              </div>
+              <div className="text-muted">Select products and add them to your cart.</div>
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))",
-                gap: "20px",
-              }}
-            >
+            <div className="grid-products">
               {products.map((product) => (
                 <ProductCard
                   key={product.id}
                   product={product}
                   showCategory={false}
-                  showQuickAdd={true}
+                  showQuickAdd
                   busy={busyPid === product.id}
                   onQuickAdd={quickAdd}
                 />
@@ -256,25 +212,12 @@ export default function Category() {
 
 function CategoryStatCard({ label, value, compactText = false }) {
   return (
-    <div className="card-ui" style={{ padding: "18px 20px" }}>
+    <div className="card-ui">
+      <div className="stat-card__label">{label}</div>
       <div
-        style={{
-          fontSize: "13px",
-          color: "#6b645b",
-          marginBottom: "8px",
-        }}
-      >
-        {label}
-      </div>
-
-      <div
-        style={{
-          fontSize: compactText ? "22px" : "30px",
-          fontWeight: 700,
-          color: "#1f1f1f",
-          lineHeight: 1.1,
-          wordBreak: "break-word",
-        }}
+        className={`stat-card__value${
+          compactText ? " stat-card__value--compact" : ""
+        }`}
       >
         {value}
       </div>

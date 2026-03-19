@@ -1,6 +1,6 @@
 # SwapMeetReact — Marketplace MVP
 
-SwapMeetReact is a full-stack marketplace system built to demonstrate clear user flow, structured UI architecture, and real data relationships across categories, products, and users. Instead of focusing on surface-level styling, the app prioritizes consistency and maintainability through a defined design system and reusable components such as shared cards, headers, form shells, and state patterns (loading/empty states). The frontend was intentionally refactored to reduce duplication and keep pages focused on data flow, while the backend supports scoped data access and predictable API behavior. The result is a clean, understandable application that shows how a marketplace actually works under the hood, not just how it looks on the surface.
+SwapMeetReact is a full-stack marketplace system built to demonstrate clear user flow, structured UI architecture, and real data relationships across categories, products, and users. Rather than relying on surface-level styling alone, the app emphasizes consistency and maintainability through a defined design system and reusable components such as shared cards, headers, form shells, and loading and empty states. The frontend was intentionally refactored to reduce duplication and keep pages focused on data flow, while the backend supports scoped data access and predictable API behavior. The result is a clean, understandable application that demonstrates how a marketplace works under the hood, not just how it looks on the surface.
 
 ---
 

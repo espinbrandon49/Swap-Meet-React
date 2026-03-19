@@ -7,12 +7,10 @@ export default function LoadingState({
 }) {
   return (
     <div className={`card-ui text-center ${className}`.trim()}>
-      <h3 style={{ marginTop: 0, marginBottom: "8px" }}>{title}</h3>
+      <h3 className="state-card__title">{title}</h3>
 
       {message ? (
-        <p className="text-muted" style={{ marginBottom: 0 }}>
-          {message}
-        </p>
+        <p className="text-muted state-card__message">{message}</p>
       ) : null}
     </div>
   );

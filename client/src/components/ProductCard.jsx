@@ -13,46 +13,37 @@ export default function ProductCard({
   if (!product) return null;
 
   const imgSrc = product.image_url || "https://picsum.photos/400/300";
-
   const price = Number(product.price || 0).toFixed(2);
 
   return (
     <div className="card-ui">
-      {/* IMAGE */}
-      <div style={{ marginBottom: "12px" }}>
+      <div className="product-card__image-wrap">
         <img
           src={imgSrc}
           alt={product.product_name || "Product"}
-          style={{
-            width: "100%",
-            height: "180px",
-            objectFit: "cover",
-            borderRadius: "12px",
-          }}
+          className="product-card__image"
           onError={(e) => {
             e.currentTarget.src = "https://picsum.photos/400/300";
           }}
         />
       </div>
 
-      {/* NAME */}
-      <h3>{product.product_name || "Unnamed product"}</h3>
+      <h3 className="product-card__title">
+        {product.product_name || "Unnamed product"}
+      </h3>
 
-      {/* PRICE */}
-      <p className="text-muted">${price}</p>
+      <p className="text-muted product-card__price">${price}</p>
 
-      {/* CATEGORY */}
       {showCategory && product.category && (
         <small>{product.category.category_name}</small>
       )}
 
-      {/* ACTIONS */}
-      <div className="mt-2" style={{ display: "flex", gap: "8px" }}>
+      <div className="product-card__actions">
         <button
           className="btn-ui btn-primary-ui"
           onClick={() => navigate(`/product/${product.id}`)}
         >
-          View
+          View Product
         </button>
 
         {showQuickAdd && (
@@ -60,9 +51,9 @@ export default function ProductCard({
             className="btn-ui btn-secondary-ui"
             onClick={() => onQuickAdd && onQuickAdd(product.id)}
             disabled={busy}
-            title="Quick Add"
+            title="Add to cart"
           >
-            {busy ? "..." : "🛒"}
+            {busy ? "..." : "Add to Cart"}
           </button>
         )}
       </div>

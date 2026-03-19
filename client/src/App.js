@@ -1,4 +1,3 @@
-// src/App.js
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 
@@ -88,20 +87,12 @@ function AppShell() {
 
   if (!authLoaded) {
     return (
-      <div
-        style={{
-          minHeight: "100vh",
-          display: "grid",
-          placeItems: "center",
-          background: "#f7f4ef",
-          padding: "24px",
-        }}
-      >
-        <div className="card-ui text-center" style={{ maxWidth: "420px", width: "100%" }}>
+      <div className="app-loading-shell">
+        <div className="card-ui text-center app-loading-card">
           <small>Loading marketplace...</small>
-          <h2 style={{ marginTop: "8px", marginBottom: "8px" }}>Preparing Swap Meet React</h2>
-          <p className="text-muted" style={{ margin: 0 }}>
-            Restoring session and storefront navigation.
+          <h2 className="mt-1 mb-1">Preparing Swap Meet React</h2>
+          <p className="text-muted mb-0">
+            Restoring your session and storefront navigation.
           </p>
         </div>
       </div>
@@ -109,86 +100,21 @@ function AppShell() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background:
-          "linear-gradient(180deg, #f7f4ef 0%, #f3efe7 220px, #f7f4ef 100%)",
-        display: "flex",
-        flexDirection: "column",
-      }}
-    >
-      <header
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 1000,
-          background: "rgba(247, 244, 239, 0.94)",
-          backdropFilter: "blur(10px)",
-          borderBottom: "1px solid #ddd4c7",
-        }}
-      >
-        <div
-          className="container"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: "20px",
-            padding: "16px 0",
-            flexWrap: "wrap",
-          }}
-        >
-          <Link
-            to="/"
-            style={{
-              textDecoration: "none",
-              color: "#1f1f1f",
-              display: "flex",
-              alignItems: "center",
-              gap: "12px",
-            }}
-          >
-            <div
-              style={{
-                width: "44px",
-                height: "44px",
-                borderRadius: "12px",
-                background: "#7c5c3b",
-                color: "#ffffff",
-                display: "grid",
-                placeItems: "center",
-                boxShadow: "0 8px 20px rgba(124, 92, 59, 0.18)",
-                fontSize: "20px",
-              }}
-            >
+    <div className="app-shell">
+      <header className="site-header">
+        <div className="container site-header__top">
+          <Link to="/" className="brand-link">
+            <div className="brand-mark">
               <i className="fa-brands fa-opencart"></i>
             </div>
 
             <div>
-              <div
-                style={{
-                  fontSize: "18px",
-                  fontWeight: 700,
-                  lineHeight: 1.1,
-                }}
-              >
-                Swap Meet React
-              </div>
-              <small style={{ display: "block", marginTop: "2px" }}>
-                Category-based marketplace MVP
-              </small>
+              <div className="brand-name">Swap Meet React</div>
+              <small className="brand-subtitle">Category-based marketplace</small>
             </div>
           </Link>
 
-          <nav
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              flexWrap: "wrap",
-            }}
-          >
+          <nav className="site-nav">
             <ShellNavLink to="/">Home</ShellNavLink>
 
             {!isLoggedIn ? (
@@ -201,7 +127,7 @@ function AppShell() {
                 <ShellNavLink to="/cart">
                   Cart{cartCount > 0 ? ` (${cartCount})` : ""}
                 </ShellNavLink>
-                <ShellNavLink to={`/profile/${user.id}`}>My Shop</ShellNavLink>
+                <ShellNavLink to={`/profile/${user.id}`}>Your Shop</ShellNavLink>
                 <ShellNavLink to="/dashboard">Dashboard</ShellNavLink>
                 <button
                   type="button"
@@ -215,61 +141,26 @@ function AppShell() {
           </nav>
         </div>
 
-        <div
-          style={{
-            borderTop: "1px solid #e7dfd2",
-            background: "#fbf9f5",
-          }}
-        >
-          <div
-            className="container"
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              gap: "16px",
-              padding: "12px 0",
-              flexWrap: "wrap",
-            }}
-          >
+        <div className="site-header__subbar">
+          <div className="container site-header__subbar-inner">
             <div>
-              <small style={{ display: "block", marginBottom: "4px" }}>
-                Portfolio rebuild
-              </small>
-              <p
-                style={{
-                  margin: 0,
-                  fontSize: "14px",
-                  color: "#5f5a52",
-                }}
-              >
-                Browse categories, inspect products, manage your shop, and review cart flow in one cohesive UI.
+              <small className="mb-1">Marketplace</small>
+              <p className="site-header__subbar-copy">
+                Browse categories, inspect products, manage your listings, and
+                review your cart in one consistent app.
               </p>
             </div>
 
             {isLoggedIn ? (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                  flexWrap: "wrap",
-                }}
-              >
+              <div className="site-header__actions">
                 <small>
                   Signed in as <strong>{user.username}</strong>
                 </small>
               </div>
             ) : (
-              <div
-                style={{
-                  display: "flex",
-                  gap: "10px",
-                  flexWrap: "wrap",
-                }}
-              >
+              <div className="site-header__actions">
                 <Link to="/registration" className="btn-ui btn-primary-ui">
-                  Start Selling
+                  Create Account
                 </Link>
                 <Link to="/login" className="btn-ui btn-secondary-ui">
                   Sign In
@@ -280,7 +171,7 @@ function AppShell() {
         </div>
       </header>
 
-      <main style={{ flex: 1, padding: "32px 0 56px" }}>
+      <main className="app-main">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/category/:id" element={<Category />} />
@@ -311,51 +202,23 @@ function AppShell() {
         </Routes>
       </main>
 
-      <footer
-        style={{
-          borderTop: "1px solid #ddd4c7",
-          background: "#ffffff",
-        }}
-      >
-        <div
-          className="container"
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            gap: "20px",
-            padding: "20px 0 28px",
-            flexWrap: "wrap",
-          }}
-        >
+      <footer className="site-footer">
+        <div className="container site-footer__inner">
           <div>
-            <div
-              style={{
-                fontWeight: 600,
-                marginBottom: "4px",
-              }}
-            >
-              Swap Meet React
-            </div>
+            <div className="site-footer__title">Swap Meet React</div>
             <small>
-              MERN marketplace portfolio project focused on buyer and seller flow clarity.
+              MERN marketplace portfolio project focused on clear browsing,
+              shop management, and cart flow.
             </small>
           </div>
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "16px",
-              fontSize: "20px",
-            }}
-          >
+          <div className="site-footer__icons">
             <a
               href="https://espinbrandon49.github.io"
               target="_blank"
               rel="noreferrer"
               aria-label="Portfolio"
-              style={{ color: "#7c5c3b" }}
+              className="site-footer__icon-link"
             >
               <i className="fa-solid fa-globe"></i>
             </a>
@@ -364,7 +227,7 @@ function AppShell() {
               target="_blank"
               rel="noreferrer"
               aria-label="GitHub repository"
-              style={{ color: "#7c5c3b" }}
+              className="site-footer__icon-link"
             >
               <i className="fa-brands fa-github"></i>
             </a>
@@ -379,17 +242,9 @@ function ShellNavLink({ to, children }) {
   return (
     <NavLink
       to={to}
-      style={({ isActive }) => ({
-        textDecoration: "none",
-        padding: "10px 14px",
-        borderRadius: "10px",
-        border: isActive ? "1px solid #cdbba5" : "1px solid transparent",
-        background: isActive ? "#efe6d8" : "transparent",
-        color: "#2a2723",
-        fontWeight: 600,
-        fontSize: "14px",
-        transition: "all 0.2s ease",
-      })}
+      className={({ isActive }) =>
+        `shell-nav-link${isActive ? " active" : ""}`
+      }
     >
       {children}
     </NavLink>

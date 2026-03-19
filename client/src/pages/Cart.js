@@ -1,4 +1,3 @@
-// src/pages/Cart.js
 import React, { useContext, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Modal from "react-bootstrap/Modal";
@@ -7,6 +6,7 @@ import { AuthContext } from "../helpers/AuthContext";
 import EmptyState from "../components/EmptyState";
 import LoadingState from "../components/LoadingState";
 import CartItem from "../components/CartItem";
+import PageHeader from "../components/PageHeader";
 
 const Cart = () => {
   const { user } = useContext(AuthContext);
@@ -132,10 +132,10 @@ const Cart = () => {
 
   if (!user?.id) {
     return (
-      <div className="container" style={{ maxWidth: "920px" }}>
+      <div className="container page-shell-narrow">
         <EmptyState
           title="Cart access requires login"
-          message="Sign in to review saved items, adjust quantities, and continue through the buyer flow."
+          message="Sign in to review saved items, adjust quantities, and continue to checkout."
           action={
             <button
               type="button"
@@ -152,7 +152,7 @@ const Cart = () => {
 
   if (loading) {
     return (
-      <div className="container" style={{ maxWidth: "1200px" }}>
+      <div className="container">
         <LoadingState
           title="Loading cart..."
           message="Pulling your selected items, quantities, and totals."
@@ -164,76 +164,41 @@ const Cart = () => {
   const isEmpty = products.length === 0;
 
   return (
-    <div className="container" style={{ maxWidth: "1200px" }}>
-      <div style={{ display: "grid", gap: "24px" }}>
-        <section className="card-ui" style={{ padding: "28px" }}>
-          <div
-            style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-start",
-              gap: "20px",
-              flexWrap: "wrap",
-            }}
-          >
-            <div style={{ display: "grid", gap: "10px" }}>
-              <div>
-                <small style={{ display: "block", marginBottom: "6px" }}>
-                  Buyer flow
-                </small>
-                <h1 style={{ margin: 0 }}>Shopping Cart</h1>
-              </div>
+    <div className="container">
+      <div className="page-shell">
+        <section className="card-ui cart-hero">
+          <div className="cart-hero__top">
+            <div className="cart-hero__copy">
+              <PageHeader
+                title="Cart"
+                subtitle="Review your items, adjust quantities, and continue to checkout."
+                right={
+                  <div className="cart-hero__actions">
+                    <Link to="/" className="btn-ui btn-secondary-ui">
+                      Browse Categories
+                    </Link>
 
-              <p
-                className="text-muted"
-                style={{
-                  margin: 0,
-                  maxWidth: "760px",
-                }}
-              >
-                Review your selected items, adjust quantities, and confirm the
-                cart before checkout. This page is meant to make the purchase
-                flow clearer and easier to scan.
-              </p>
-
-              <div
-                style={{
-                  display: "flex",
-                  gap: "10px",
-                  flexWrap: "wrap",
-                }}
-              >
-                <Link to="/" className="btn-ui btn-secondary-ui">
-                  Continue Shopping
-                </Link>
-
-                {!isEmpty ? (
-                  <button
-                    type="button"
-                    className="btn-ui btn-primary-ui"
-                    onClick={() => setShowCheckout(true)}
-                  >
-                    Proceed to Checkout
-                  </button>
-                ) : null}
-              </div>
+                    {!isEmpty ? (
+                      <button
+                        type="button"
+                        className="btn-ui btn-primary-ui"
+                        onClick={() => setShowCheckout(true)}
+                      >
+                        Checkout
+                      </button>
+                    ) : null}
+                  </div>
+                }
+              />
             </div>
 
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "repeat(3, minmax(130px, 1fr))",
-                gap: "12px",
-                minWidth: "320px",
-                flex: "1 1 320px",
-              }}
-            >
+            <div className="cart-stat-grid">
               <CartStatCard label="Items" value={itemCount} />
-              <CartStatCard label="Sellers" value={distinctSellerCount} />
+              <CartStatCard label="Shops" value={distinctSellerCount} />
               <CartStatCard
                 label="Subtotal"
                 value={currency.format(subtotal)}
-                compactText={true}
+                compactText
               />
             </div>
           </div>
@@ -245,55 +210,21 @@ const Cart = () => {
             message="Add items from category or product pages to see them here."
             action={
               <Link to="/" className="btn-ui btn-primary-ui">
-                Browse Marketplace
+                Browse Categories
               </Link>
             }
           />
         ) : (
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "minmax(0, 1fr) minmax(300px, 360px)",
-              gap: "24px",
-              alignItems: "start",
-            }}
-          >
-            <section
-              className="card-ui"
-              style={{
-                display: "grid",
-                gap: "18px",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  gap: "16px",
-                  flexWrap: "wrap",
-                }}
-              >
-                <div>
-                  <small style={{ display: "block", marginBottom: "4px" }}>
-                    Cart items
-                  </small>
-                  <h2 style={{ margin: 0, fontSize: "26px" }}>
-                    Selected products
-                  </h2>
-                </div>
-
-                <div className="text-muted">
-                  Adjust quantity directly from this page.
-                </div>
+          <div className="cart-layout">
+            <section className="card-ui cart-section">
+              <div className="cart-section__head">
+                <PageHeader
+                  title="Products in Cart"
+                  subtitle="Update quantities and review your selections."
+                />
               </div>
 
-              <div
-                style={{
-                  display: "grid",
-                  gap: "16px",
-                }}
-              >
+              <div className="cart-items-grid">
                 {products.map((product) => (
                   <CartItem
                     key={product.id}
@@ -307,67 +238,19 @@ const Cart = () => {
               </div>
             </section>
 
-            <aside
-              className="card-ui"
-              style={{
-                display: "grid",
-                gap: "18px",
-                position: "sticky",
-                top: "104px",
-              }}
-            >
-              <div>
-                <small style={{ display: "block", marginBottom: "6px" }}>
-                  Order summary
-                </small>
-                <h2 style={{ margin: 0, fontSize: "24px" }}>Checkout panel</h2>
-              </div>
+            <aside className="card-ui cart-summary">
+              <PageHeader title="Checkout" subtitle="Order summary" />
 
-              <div
-                style={{
-                  border: "1px solid #e4dccf",
-                  borderRadius: "16px",
-                  background: "#fcfaf6",
-                  padding: "18px",
-                  display: "grid",
-                  gap: "14px",
-                }}
-              >
+              <div className="cart-summary__box">
                 <SummaryRow label="Items" value={itemCount} />
                 <SummaryRow label="Distinct products" value={products.length} />
                 <SummaryRow label="Subtotal" value={currency.format(subtotal)} />
 
-                <div
-                  style={{
-                    height: "1px",
-                    background: "#e4dccf",
-                  }}
-                />
+                <div className="summary-divider" />
 
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    gap: "12px",
-                    alignItems: "center",
-                  }}
-                >
-                  <div
-                    style={{
-                      fontSize: "14px",
-                      color: "#6b645b",
-                    }}
-                  >
-                    Total
-                  </div>
-                  <div
-                    style={{
-                      fontSize: "28px",
-                      fontWeight: 700,
-                      color: "#1f1f1f",
-                      lineHeight: 1,
-                    }}
-                  >
+                <div className="summary-total">
+                  <div className="summary-total__label">Total</div>
+                  <div className="summary-total__value">
                     {currency.format(subtotal)}
                   </div>
                 </div>
@@ -382,16 +265,8 @@ const Cart = () => {
                 Checkout
               </button>
 
-              <p
-                className="text-muted"
-                style={{
-                  margin: 0,
-                  fontSize: "14px",
-                  lineHeight: 1.6,
-                }}
-              >
-                This portfolio build uses a mock checkout confirmation rather
-                than a live payment flow.
+              <p className="text-muted mb-0">
+                Checkout is simulated in this portfolio project.
               </p>
             </aside>
           </div>
@@ -404,22 +279,12 @@ const Cart = () => {
         </Modal.Header>
 
         <Modal.Body>
-          <div style={{ display: "grid", gap: "10px" }}>
-            <p style={{ margin: 0 }}>
-              Thanks for testing the buyer flow.
+          <div className="checkout-modal-stack">
+            <p className="mb-0">Thanks for reviewing the cart flow.</p>
+            <p className="text-muted mb-0">
+              This checkout step is intentionally mocked for the portfolio demo.
             </p>
-            <p className="text-muted" style={{ margin: 0 }}>
-              This checkout step is intentionally mocked for portfolio demo
-              purposes.
-            </p>
-            <div
-              style={{
-                border: "1px solid #e4dccf",
-                borderRadius: "14px",
-                padding: "14px",
-                background: "#fcfaf6",
-              }}
-            >
+            <div className="checkout-total-box">
               <strong>Total:</strong> {currency.format(subtotal)}
             </div>
           </div>
@@ -441,25 +306,12 @@ const Cart = () => {
 
 function CartStatCard({ label, value, compactText = false }) {
   return (
-    <div className="card-ui" style={{ padding: "18px 20px" }}>
+    <div className="card-ui">
+      <div className="stat-card__label">{label}</div>
       <div
-        style={{
-          fontSize: "13px",
-          color: "#6b645b",
-          marginBottom: "8px",
-        }}
-      >
-        {label}
-      </div>
-
-      <div
-        style={{
-          fontSize: compactText ? "22px" : "30px",
-          fontWeight: 700,
-          color: "#1f1f1f",
-          lineHeight: 1.1,
-          wordBreak: "break-word",
-        }}
+        className={`stat-card__value${
+          compactText ? " stat-card__value--compact" : ""
+        }`}
       >
         {value}
       </div>
@@ -469,31 +321,9 @@ function CartStatCard({ label, value, compactText = false }) {
 
 function SummaryRow({ label, value }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        gap: "12px",
-        alignItems: "center",
-      }}
-    >
-      <div
-        style={{
-          fontSize: "14px",
-          color: "#6b645b",
-        }}
-      >
-        {label}
-      </div>
-      <div
-        style={{
-          fontSize: "15px",
-          fontWeight: 600,
-          color: "#1f1f1f",
-        }}
-      >
-        {value}
-      </div>
+    <div className="summary-row">
+      <div className="summary-row__label">{label}</div>
+      <div className="summary-row__value">{value}</div>
     </div>
   );
 }
