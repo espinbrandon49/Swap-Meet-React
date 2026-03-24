@@ -116,4 +116,4 @@ node seeds/index.js
 
 ## Demo Video
 
-https://youtu.be/DEZpYes7cY8
+https://youtu.be/gm3SuokmNJE
