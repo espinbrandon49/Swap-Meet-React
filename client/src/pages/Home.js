@@ -30,7 +30,9 @@ export default function Home() {
 
         if (!mounted) return;
 
-        setCategories(Array.isArray(categoriesRes.data) ? categoriesRes.data : []);
+        setCategories(
+          Array.isArray(categoriesRes.data) ? categoriesRes.data : [],
+        );
         setProducts(Array.isArray(productsRes.data) ? productsRes.data : []);
       } catch (err) {
         console.error("Failed to load home:", err);
@@ -51,7 +53,10 @@ export default function Home() {
     };
   }, []);
 
-  const featuredCategories = useMemo(() => categories.slice(0, 6), [categories]);
+  const featuredCategories = useMemo(
+    () => categories.slice(0, 6),
+    [categories],
+  );
   const latestProducts = useMemo(() => products.slice(0, 8), [products]);
 
   return (
@@ -63,8 +68,8 @@ export default function Home() {
               <small>Marketplace</small>
 
               <h1 className="hero-title">
-                Browse categories, view products, and track your cart across one
-                structured marketplace
+                Browse curated categories, explore products, and manage your
+                cart in one marketplace.
               </h1>
 
               <p className="text-muted hero-text">
@@ -137,7 +142,8 @@ export default function Home() {
 
             {!loadingCategories && categories.length > 0 ? (
               <div className="text-muted">
-                {categories.length} categor{categories.length === 1 ? "y" : "ies"}
+                {categories.length} categor
+                {categories.length === 1 ? "y" : "ies"}
               </div>
             ) : null}
           </div>
@@ -163,7 +169,8 @@ export default function Home() {
               {categories.length > featuredCategories.length ? (
                 <div className="center-note">
                   <div className="text-muted">
-                    Showing {featuredCategories.length} of {categories.length} categories
+                    Showing {featuredCategories.length} of {categories.length}{" "}
+                    categories
                   </div>
                 </div>
               ) : null}
@@ -206,7 +213,8 @@ export default function Home() {
               {products.length > latestProducts.length ? (
                 <div className="center-note">
                   <div className="text-muted">
-                    Showing {latestProducts.length} of {products.length} products
+                    Showing {latestProducts.length} of {products.length}{" "}
+                    products
                   </div>
                 </div>
               ) : null}

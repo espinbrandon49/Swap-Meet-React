@@ -6,6 +6,7 @@ import ProductCard from "../components/ProductCard";
 import EmptyState from "../components/EmptyState";
 import LoadingState from "../components/LoadingState";
 import PageHeader from "../components/PageHeader";
+import { SHOP_FALLBACK } from "../utils/imageDefaults";
 
 const Profile = () => {
   const { id } = useParams();
@@ -104,7 +105,7 @@ const Profile = () => {
   };
 
   const displayName = shopName || (isOwner ? "Your Storefront" : "Storefront");
-  const heroImage = "https://picsum.photos/320/320";
+  const heroImage = SHOP_FALLBACK;
 
   return (
     <div className="container">
@@ -117,7 +118,7 @@ const Profile = () => {
                 alt={displayName}
                 className="shop-hero__image"
                 onError={(e) => {
-                  e.currentTarget.src = "https://picsum.photos/300/300";
+                  e.currentTarget.src = SHOP_FALLBACK;
                 }}
               />
             </div>

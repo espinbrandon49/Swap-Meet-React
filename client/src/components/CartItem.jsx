@@ -1,4 +1,5 @@
 import React from "react";
+import { getSafeProductImage, PRODUCT_FALLBACK } from "../utils/imageDefaults";
 
 export default function CartItem({
   product,
@@ -7,7 +8,7 @@ export default function CartItem({
   onChangeQty,
   currency,
 }) {
-  const imgSrc = product.image_url || "https://picsum.photos/400/300";
+  const imgSrc = getSafeProductImage(product.image_url);
 
   return (
     <div className="cart-product">
@@ -16,7 +17,7 @@ export default function CartItem({
         src={imgSrc}
         alt={product.product_name}
         onError={(e) => {
-          e.currentTarget.src = "https://picsum.photos/400/300";
+          e.currentTarget.src = PRODUCT_FALLBACK;
         }}
       />
 

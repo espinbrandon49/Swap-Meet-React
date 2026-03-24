@@ -6,24 +6,14 @@ import { AuthContext } from "../helpers/AuthContext";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
 import PageHeader from "../components/PageHeader";
+import {
+  DASHBOARD_PREVIEW_FALLBACK,
+  getSafeProductImage,
+} from "../utils/imageDefaults";
 
 export default function Dashboard() {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
-
-  const THUMBS = useMemo(
-    () => [
-      "https://picsum.photos/id/1011/600/400",
-      "https://picsum.photos/id/1025/600/400",
-      "https://picsum.photos/id/1035/600/400",
-      "https://picsum.photos/id/1047/600/400",
-      "https://picsum.photos/id/1062/600/400",
-      "https://picsum.photos/id/1074/600/400",
-      "https://picsum.photos/id/1084/600/400",
-      "https://picsum.photos/id/1080/600/400",
-    ],
-    []
-  );
 
   const [loading, setLoading] = useState(true);
   const [categories, setCategories] = useState([]);
@@ -40,7 +30,7 @@ export default function Dashboard() {
     price: "",
     stock: "",
     category_id: "",
-    image_url: THUMBS[0],
+    image_url: "",
   });
 
   const [showEditProd, setShowEditProd] = useState(false);
@@ -152,7 +142,7 @@ export default function Dashboard() {
       price: String(p.price ?? ""),
       stock: String(p.stock ?? ""),
       category_id: String(p.category_id ?? p.categoryId ?? p._category?.id ?? ""),
-      image_url: p.image_url || THUMBS[0],
+      image_url: p.image_url || "",
     });
     setShowEditProd(true);
   };
@@ -163,7 +153,7 @@ export default function Dashboard() {
       price: Number(newProd.price),
       stock: Number(newProd.stock),
       category_id: Number(newProd.category_id),
-      image_url: newProd.image_url || THUMBS[0],
+      image_url: (newProd.image_url || "").trim() || null,
     };
 
     if (!payload.product_name) return alert("Product name is required");
@@ -178,7 +168,7 @@ export default function Dashboard() {
         price: "",
         stock: "",
         category_id: "",
-        image_url: THUMBS[0],
+        image_url: "",
       });
       await reload();
     } catch (err) {
@@ -194,7 +184,7 @@ export default function Dashboard() {
       price: Number(editProd.price),
       stock: Number(editProd.stock),
       category_id: Number(editProd.category_id),
-      image_url: editProd.image_url || THUMBS[0],
+      image_url: (editProd.image_url || "").trim() || null,
     };
 
     if (!payload.product_name) return alert("Product name is required");
@@ -245,6 +235,8 @@ export default function Dashboard() {
   }
 
   const totalStock = products.reduce((sum, p) => sum + Number(p?.stock ?? 0), 0);
+  const newProductPreview = getSafeProductImage(newProd.image_url);
+  const editProductPreview = getSafeProductImage(editProd?.image_url);
 
   return (
     <div className="container">
@@ -258,7 +250,7 @@ export default function Dashboard() {
 
               <PageHeader
                 title="Manage Your Shop"
-                subtitle="Create categories, add listings, and organize your storefront."
+                subtitle="Create categories, publish listings, and keep your storefront organized."
               />
             </div>
 
@@ -280,7 +272,7 @@ export default function Dashboard() {
             <section className="card-ui dashboard-section">
               <PageHeader
                 title="Categories"
-                subtitle="Organize your shop structure."
+                subtitle="Organize your shop with clear, browseable sections."
               />
 
               <div className="field-stack">
@@ -295,7 +287,7 @@ export default function Dashboard() {
                     className="input-ui"
                     value={newCatName}
                     onChange={(e) => setNewCatName(e.target.value)}
-                    placeholder="Example: Vintage Jackets"
+                    placeholder="Example: Vintage Denim"
                     onKeyDown={(e) => {
                       if (e.key === "Enter") addCategory();
                     }}
@@ -367,7 +359,7 @@ export default function Dashboard() {
                 <div>
                   <h3 className="mb-1">Add a product</h3>
                   <p className="text-muted mb-0">
-                    Choose a category, add price and stock, and select a thumbnail.
+                    Create a listing with a product name, price, stock, category, and optional image URL.
                   </p>
                 </div>
 
@@ -387,7 +379,7 @@ export default function Dashboard() {
                           product_name: e.target.value,
                         }))
                       }
-                      placeholder="Example: Denim Jacket"
+                      placeholder="Example: Faded Carpenter Denim Jacket"
                     />
                   </div>
 
@@ -406,7 +398,7 @@ export default function Dashboard() {
                           price: e.target.value,
                         }))
                       }
-                      placeholder="24.99"
+                      placeholder="64.99"
                     />
                   </div>
 
@@ -425,7 +417,7 @@ export default function Dashboard() {
                           stock: e.target.value,
                         }))
                       }
-                      placeholder="10"
+                      placeholder="8"
                     />
                   </div>
 
@@ -454,11 +446,12 @@ export default function Dashboard() {
                   </div>
 
                   <div className="col-span-6">
-                    <label htmlFor="new-product-thumb" className="form-label-ui">
-                      Thumbnail
+                    <label htmlFor="new-product-image-url" className="form-label-ui">
+                      Image URL
                     </label>
-                    <select
-                      id="new-product-thumb"
+                    <input
+                      id="new-product-image-url"
+                      type="text"
                       className="input-ui"
                       value={newProd.image_url}
                       onChange={(e) =>
@@ -467,24 +460,19 @@ export default function Dashboard() {
                           image_url: e.target.value,
                         }))
                       }
-                    >
-                      {THUMBS.map((thumb) => (
-                        <option key={thumb} value={thumb}>
-                          {thumb}
-                        </option>
-                      ))}
-                    </select>
+                      placeholder="Paste an image URL or leave blank to use the default preview"
+                    />
                   </div>
                 </div>
 
                 <div className="preview-row">
                   <div className="preview-media">
                     <img
-                      src={newProd.image_url || THUMBS[0]}
+                      src={newProductPreview}
                       alt="Preview"
                       className="preview-thumb"
                       onError={(e) => {
-                        e.currentTarget.src = THUMBS[0];
+                        e.currentTarget.src = DASHBOARD_PREVIEW_FALLBACK;
                       }}
                     />
                     <div className="text-muted">Preview for the new product.</div>
@@ -511,11 +499,11 @@ export default function Dashboard() {
                     <div key={p.id} className="dashboard-product-card">
                       <div className="dashboard-product-card__main">
                         <img
-                          src={p.image_url || THUMBS[0]}
+                          src={getSafeProductImage(p.image_url)}
                           alt={p.product_name}
                           className="dashboard-product-card__image"
                           onError={(e) => {
-                            e.currentTarget.src = THUMBS[0];
+                            e.currentTarget.src = DASHBOARD_PREVIEW_FALLBACK;
                           }}
                         />
 
@@ -683,38 +671,34 @@ export default function Dashboard() {
             </div>
 
             <div>
-              <label htmlFor="edit-product-thumb" className="form-label-ui">
-                Thumbnail
+              <label htmlFor="edit-product-image-url" className="form-label-ui">
+                Image URL
               </label>
-              <select
-                id="edit-product-thumb"
+              <input
+                id="edit-product-image-url"
+                type="text"
                 className="input-ui"
-                value={editProd?.image_url || THUMBS[0]}
+                value={editProd?.image_url || ""}
                 onChange={(e) =>
                   setEditProd((prev) => ({
                     ...prev,
                     image_url: e.target.value,
                   }))
                 }
-              >
-                {THUMBS.map((thumb) => (
-                  <option key={thumb} value={thumb}>
-                    {thumb}
-                  </option>
-                ))}
-              </select>
+                placeholder="Paste an image URL or leave blank to use the default preview"
+              />
             </div>
 
             <div className="preview-media">
               <img
-                src={editProd?.image_url || THUMBS[0]}
+                src={editProductPreview}
                 alt="Preview"
                 className="preview-thumb"
                 onError={(e) => {
-                  e.currentTarget.src = THUMBS[0];
+                  e.currentTarget.src = DASHBOARD_PREVIEW_FALLBACK;
                 }}
               />
-              <div className="text-muted">Updated thumbnail preview.</div>
+              <div className="text-muted">Updated product preview.</div>
             </div>
           </div>
         </Modal.Body>

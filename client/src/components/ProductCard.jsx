@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { getSafeProductImage, PRODUCT_FALLBACK } from "../utils/imageDefaults";
 
 export default function ProductCard({
   product,
@@ -12,7 +13,7 @@ export default function ProductCard({
 
   if (!product) return null;
 
-  const imgSrc = product.image_url || "https://picsum.photos/400/300";
+  const imgSrc = getSafeProductImage(product.image_url);
   const price = Number(product.price || 0).toFixed(2);
 
   return (
@@ -23,7 +24,7 @@ export default function ProductCard({
           alt={product.product_name || "Product"}
           className="product-card__image"
           onError={(e) => {
-            e.currentTarget.src = "https://picsum.photos/400/300";
+            e.currentTarget.src = PRODUCT_FALLBACK;
           }}
         />
       </div>

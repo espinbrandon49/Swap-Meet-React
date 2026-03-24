@@ -5,8 +5,7 @@ import { AuthContext } from "../helpers/AuthContext";
 import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
 import PageHeader from "../components/PageHeader";
-
-const FALLBACK_IMAGE = "https://picsum.photos/900/700";
+import { getSafeProductImage, PRODUCT_FALLBACK } from "../utils/imageDefaults";
 
 export default function Product() {
   const { id } = useParams();
@@ -87,6 +86,7 @@ export default function Product() {
     "Storefront";
   const categoryName =
     category?.category_name || product?.category_name || "Category";
+  const imageSrc = getSafeProductImage(product?.image_url);
 
   const handleQuantityChange = (nextValue) => {
     const numeric = Number(nextValue);
@@ -169,11 +169,11 @@ export default function Product() {
             <div className="product-gallery">
               <div className="product-image-frame">
                 <img
-                  src={product.image_url || FALLBACK_IMAGE}
+                  src={imageSrc}
                   alt={product.product_name}
                   className="product-image-frame__img"
                   onError={(e) => {
-                    e.currentTarget.src = FALLBACK_IMAGE;
+                    e.currentTarget.src = PRODUCT_FALLBACK;
                   }}
                 />
               </div>
@@ -195,10 +195,7 @@ export default function Product() {
             </div>
 
             <div className="product-details">
-              <PageHeader
-                title={product.product_name}
-                subtitle="Product"
-              />
+              <PageHeader title={product.product_name} subtitle="Product" />
 
               <div className="badge-row">
                 <span className="soft-badge">{categoryName}</span>
@@ -247,8 +244,8 @@ export default function Product() {
                       {stock <= 0
                         ? "Out of Stock"
                         : submitting
-                        ? "Adding..."
-                        : "Add to Cart"}
+                          ? "Adding..."
+                          : "Add to Cart"}
                     </button>
 
                     {owner?.id ? (
