@@ -1,10 +1,13 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import formatShopName from "../utils/formatShopName";
 
 export default function CategoryCard({ category }) {
   if (!category) return null;
 
-  const ownerName = category.owner?.username || category.username || "Storefront";
+  const ownerName = formatShopName(
+    category.owner?.username || category.username || "Storefront"
+  );
 
   const productCount = Array.isArray(category.products)
     ? category.products.length

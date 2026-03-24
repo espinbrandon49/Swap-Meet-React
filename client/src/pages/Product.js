@@ -6,6 +6,7 @@ import LoadingState from "../components/LoadingState";
 import EmptyState from "../components/EmptyState";
 import PageHeader from "../components/PageHeader";
 import { getSafeProductImage, PRODUCT_FALLBACK } from "../utils/imageDefaults";
+import formatShopName from "../utils/formatShopName";
 
 export default function Product() {
   const { id } = useParams();
@@ -79,11 +80,12 @@ export default function Product() {
 
   const stock = Number(product?.stock ?? 0);
   const safeQuantity = Math.max(1, Math.min(quantity, stock || 1));
-  const ownerName =
+  const ownerName = formatShopName(
     owner?.username ||
-    category?.owner?.username ||
-    product?.owner_username ||
-    "Storefront";
+      category?.owner?.username ||
+      product?.owner_username ||
+      "Storefront"
+  );
   const categoryName =
     category?.category_name || product?.category_name || "Category";
   const imageSrc = getSafeProductImage(product?.image_url);

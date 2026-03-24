@@ -7,6 +7,7 @@ import EmptyState from "../components/EmptyState";
 import LoadingState from "../components/LoadingState";
 import PageHeader from "../components/PageHeader";
 import { SHOP_FALLBACK } from "../utils/imageDefaults";
+import formatShopName from "../utils/formatShopName";
 
 const Profile = () => {
   const { id } = useParams();
@@ -104,7 +105,9 @@ const Profile = () => {
     }
   };
 
-  const displayName = shopName || (isOwner ? "Your Storefront" : "Storefront");
+  const displayName = formatShopName(
+    shopName || (isOwner ? "Your Storefront" : "Storefront")
+  );
   const heroImage = SHOP_FALLBACK;
 
   return (

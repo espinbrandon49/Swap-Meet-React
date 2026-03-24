@@ -352,7 +352,7 @@ export default function Dashboard() {
             <section className="card-ui dashboard-section">
               <PageHeader
                 title="Your Listings"
-                subtitle="Add products, assign categories, and manage stock."
+                subtitle="Create listings, assign categories, and manage your inventory."
               />
 
               <div className="dashboard-product-form">
