@@ -1,19 +1,29 @@
 const router = require("express").Router();
-const { Product, Category } = require("../models");
+const { Product, Category, User } = require("../models");
 const { validateToken } = require("../middleWares/AuthMiddlewares");
+
+// Shared include: Product → Category → Owner
+const productInclude = [
+  {
+    model: Category,
+    as: "category",
+    attributes: ["id", "user_id", "category_name"],
+    required: true,
+    include: [
+      {
+        model: User,
+        as: "owner",
+        attributes: ["id", "username"],
+      },
+    ],
+  },
+];
 
 // Helper: load a product with its category ownership data
 async function loadProductWithCategory(id) {
   return Product.findOne({
     where: { id },
-    include: [
-      {
-        model: Category,
-        as: "category",
-        attributes: ["id", "user_id", "category_name"],
-        required: true,
-      },
-    ],
+    include: productInclude,
   });
 }
 
@@ -37,7 +47,7 @@ router.get("/", async (req, res) => {
 
     const rows = await Product.findAll({
       where,
-      include: [{ model: Category, as: "category" }],
+      include: productInclude,
       limit: limitNum,
       offset: offsetNum,
       order: [["id", "DESC"]],
@@ -54,7 +64,7 @@ router.get("/by-category/:category_id", async (req, res) => {
   try {
     const products = await Product.findAll({
       where: { category_id: req.params.category_id },
-      include: [{ model: Category, as: "category" }],
+      include: productInclude,
       order: [["id", "DESC"]],
     });
 
@@ -68,7 +78,7 @@ router.get("/by-category/:category_id", async (req, res) => {
 router.get("/:id", async (req, res) => {
   try {
     const prod = await Product.findByPk(req.params.id, {
-      include: [{ model: Category, as: "category" }],
+      include: productInclude,
     });
 
     if (!prod) return res.status(404).json({ error: "Not found" });
@@ -117,7 +127,7 @@ router.post("/", validateToken, async (req, res) => {
     });
 
     const created = await Product.findByPk(product.id, {
-      include: [{ model: Category, as: "category" }],
+      include: productInclude,
     });
 
     return res.status(201).json(created);
@@ -168,7 +178,7 @@ router.patch("/:id", validateToken, async (req, res) => {
     await prod.update(data);
 
     const updated = await Product.findByPk(prod.id, {
-      include: [{ model: Category, as: "category" }],
+      include: productInclude,
     });
 
     res.json(updated);
